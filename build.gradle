@@ -43,6 +43,10 @@ repositories {
     mavenCentral()
 }
 
+// para publicar:
+//  gradle publishToSonatype closeAndReleaseSonatypeStagingRepository sabn
+
+
 // desactivo la generación de javadoc en los proyectos que tengan la tarea
 javadoc.enabled = true
 
@@ -68,7 +72,7 @@ println "***************************************************************"
 //gradle addCredentials -PcredentialsKey=nexusPassword -PcredentialsValue=YYYYY -PcredentialsPassphrase=zzzzzzzz
 //def nexusUser = credentials.nexusUser
 //def nexusPassword = credentials.nexusPassword
-def sonatypeUser = credentials.sonatypeUser
+def sonatypeUsername = credentials.sonatypeUser
 def sonatypePassword = credentials.sonatypePassword
 
 
@@ -186,6 +190,18 @@ java {
 //     packageGroup = "com.github.mdre" //optional if packageGroup == project.getGroup()
 //     //    stagingProfileId = "yourStagingProfileId" //when not defined will be got from server using "packageGroup"
 // }
+
+
+nexusPublishing {
+    repositories {
+        //sonatype()
+        sonatype {
+            username = sonatypeUsername
+            password = sonatypePassword
+        }
+    }
+}
+
 
 //sube a nexus
 publishing {
