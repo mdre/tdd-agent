@@ -1,0 +1,286 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    id 'signing'
+    //id 'net.researchgate.release' version '2.6.0'
+    id 'nu.studer.credentials' version '2.1'
+    //id 'io.codearte.nexus-staging' version '0.21.0'
+     id("io.github.gradle-nexus.publish-plugin") version "1.1.0"
+}
+
+// ejecutar: gradle idea 
+// para que inicialize el proyecto y baje los javadocs.
+apply plugin: 'idea'
+idea{
+    module{
+        downloadJavadoc=true
+    }
+}
+
+compileJava {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+
+dependencies {
+    implementation 'org.ow2.asm:asm:9.4'
+    implementation 'org.ow2.asm:asm-util:9.4'
+    testImplementation 'junit:junit:[4,)'
+}
+
+
+repositories {
+    //    maven {
+    //        url "$sonatypeURLRelease"
+    //            
+    //        credentials {
+    //            username = "$sonatypeUser"
+    //            password = "$sonatypePassword"
+    //        }
+    //    }
+    mavenLocal()
+    mavenCentral()
+}
+
+// desactivo la generación de javadoc en los proyectos que tengan la tarea
+javadoc.enabled = true
+
+println "***************************************************************"
+println "SISTEMA: " + name
+println "VERSION: " + version
+println "JAVA   : " + System.getProperty('java.home')
+println "***************************************************************"
+
+// Para hace el deploy en Sonatype
+// 1. Hacer el commit a github desde NB
+// 2. Ejecutar: gradle release
+// 3. ir a: https://oss.sonatype.org/#stagingRepositories
+//    buscar el repositorio y hacer clic en "Close"
+// 4. Una vez cerrado hacer click en "Release"
+
+
+//Para guardar el usuario y contraseña en forma segura hacer:
+//gradle addCredentials -PcredentialsKey=nexusUser -PcredentialsValue=XXXXX
+//gradle addCredentials -PcredentialsKey=nexusPassword -PcredentialsValue=YYYYY
+//o para hacerlo más seguro:
+//gradle addCredentials -PcredentialsKey=nexusUser -PcredentialsValue=XXXXX -PcredentialsPassphrase=zzzzzzzz
+//gradle addCredentials -PcredentialsKey=nexusPassword -PcredentialsValue=YYYYY -PcredentialsPassphrase=zzzzzzzz
+//def nexusUser = credentials.nexusUser
+//def nexusPassword = credentials.nexusPassword
+def sonatypeUser = credentials.sonatypeUser
+def sonatypePassword = credentials.sonatypePassword
+
+
+// incrementar automáticamente el buildNumber
+task autoBuildNumber {
+    doFirst {
+        File propertiesFile = new File('gradle.properties')
+        def lines = propertiesFile.readLines()
+
+        PrintWriter printWriter = new PrintWriter(propertiesFile)
+        
+        lines.each {String line ->
+            if (line.startsWith("version") ){
+                String versionNumber = line.tokenize("=")[1]
+                String[] versionParts = versionNumber.tokenize(".")
+                // recalcular el build 
+                versionNumber = versionParts[0]+\
+                                '.'+versionParts[1]+\
+                                '.'+versionParts[2]+
+                                '.'+( versionParts.length==4 ? (versionParts[3].toInteger()+1).toString():"1")
+                
+                line = "version="+versionNumber
+                //                println line
+            }
+            printWriter.println(line)
+        }
+        printWriter.close()
+    }
+}
+task sabn {}
+
+// agregar la dependencia solo si no se trata de un release
+if (! (project.gradle.startParameter.taskNames.join(",").toLowerCase().contains("release") || 
+       project.gradle.startParameter.taskNames.join(",").toLowerCase().contains("sabn") 
+        ) ) {
+    build.dependsOn autoBuildNumber
+}
+build.doLast {
+    println "***************************************************************"
+    println "SISTEMA: " + name
+    println "VERSION: " + version
+    println "JAVA   : " + System.getProperty('java.home')
+    println "***************************************************************"
+}
+
+
+// seteo carpeta de fuentes para sonar
+//sonarqube {
+//    properties {
+//        property "sonar.sources", "src/main"
+//    }
+//}
+
+
+
+
+test {
+    jvmArgs '-Djdk.attach.allowAttachSelf=true'
+    testLogging {
+        // Make sure output from
+        // standard out or error is shown
+        // in Gradle output.
+        showStandardStreams = true
+ 
+        // Or we use events method:
+        // events 'standard_out', 'standard_error'
+ 
+        // Or set property events:
+        // events = ['standard_out', 'standard_error']
+ 
+        // Instead of string values we can
+        // use enum values:
+        // events org.gradle.api.tasks.testing.logging.TestLogEvent.STANDARD_OUT,
+        //        org.gradle.api.tasks.testing.logging.TestLogEvent.STANDARD_ERROR,
+    }
+}
+
+jar {
+    manifest {
+        attributes(
+            'Class-Path': configurations.compileClasspath.collect { it.getName() }.join(' '),
+            'Premain-Class':'net.dirtydetector.agent.TransparentDirtyDetectorAgent',
+            'Agent-Class':'net.dirtydetector.agent.TransparentDirtyDetectorAgent',
+            'Can-Redefine-Classes':true,
+            'Can-Retransform-Classes':true
+        )
+    }
+}
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+
+
+// de acuerdo a la guía de 
+// http://central.sonatype.org/pages/gradle.html
+//task javadocJar(type: Jar) {
+//    classifier = 'javadoc'
+//    from javadoc
+//}
+
+//task sourcesJar(type: Jar) {
+//    classifier = 'sources'
+//    from sourceSets.main.allSource
+//}
+
+//artifacts {
+//    archives javadocJar, sourcesJar
+//}
+
+
+// nexusStaging {
+//     packageGroup = "com.github.mdre" //optional if packageGroup == project.getGroup()
+//     //    stagingProfileId = "yourStagingProfileId" //when not defined will be got from server using "packageGroup"
+// }
+
+//sube a nexus
+publishing {
+    publications {
+        maven(MavenPublication) {
+            //artifactId = 'my-library'
+            from components.java
+            versionMapping {
+                usage('java-api') {
+                    fromResolutionOf('runtimeClasspath')
+                }
+                usage('java-runtime') {
+                    fromResolutionResult()
+                }
+            }
+            
+            pom {
+                name = 'Transparent Dirty Detector Class Instrumentation Agent'
+                packaging = 'jar'
+                // optionally artifactId can be defined here 
+                description = 'Tranparent Dirty Detector Agent instrument class at runtime to detect dirty object.'
+                url = 'https://github.com/mdre/tdd-agent'
+
+                scm {
+                    connection = 'scm:git:git://github.com/mdre/tdd-agent.git'
+                    developerConnection = 'scm:git:ssh://github.com/mdre/tdd-agent.git'
+                    url = 'https://github.com/mdre/tdd-agent'
+                }
+
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                
+                developers {
+                    developer {
+                        id = 'mdre'
+                        name = 'Marcelo D. RE'
+                        email = 'marcelo.re@gmail.com'
+                    }
+                }
+            }
+            
+        }
+    }
+}
+
+
+
+signing {
+    sign publishing.publications.maven
+}
+
+task runFile(dependsOn: 'classes',type:JavaExec) {
+    if (project.hasProperty('mainClass')) {
+        main = mainClass
+        classpath = sourceSets.main.runtimeClasspath
+        standardOutput = System.out
+        errorOutput = System.err
+    } 
+}
+
+
+task debug(dependsOn: 'classes',type:JavaExec) {
+    if (project.hasProperty('mainClass')) {
+        main = mainClass
+        classpath = sourceSets.main.runtimeClasspath
+        standardOutput = System.out
+        errorOutput = System.err
+        debug true
+    }
+}
+
+//create a single Jar with all dependencies
+//create a single Jar with all dependencies
+task fatJar(type: Jar) {
+    //    manifest {
+    //        attributes(
+    //      'Class-Path': configurations.compile.collect { it.getName() }.join(' '),
+    //      'Premain-Class':'net.odbogm.agent.TransparentDirtyDetectorAgent',
+    //      'Agent-Class':'net.odbogm.agent.TransparentDirtyDetectorAgent',
+    //      'Can-Redefine-Classes':true,
+    //      'Can-Retransform-Classes':true
+    //        )
+    //    }
+    archiveBaseName = project.name + '-all'
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
+
+
+javadoc {
+    if(JavaVersion.current().isJava9Compatible()) {
+        options.addBooleanOption('html5', true)
+    }
+}

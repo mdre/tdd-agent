@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module relativePaths="true" type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <exclude-output/>
+    <orderEntry type="inheritedJdk"/>
+    <content url="file://$MODULE_DIR$/">
+      <sourceFolder url="file://$MODULE_DIR$/src/main/java" isTestSource="false"/>
+      <sourceFolder url="file://$MODULE_DIR$/src/test/java" isTestSource="true"/>
+      <sourceFolder url="file://$MODULE_DIR$/src/main/resources" type="java-resource"/>
+      <sourceFolder url="file://$MODULE_DIR$/src/test/resources" type="java-test-resource"/>
+      <excludeFolder url="file://$MODULE_DIR$/.gradle"/>
+      <excludeFolder url="file://$MODULE_DIR$/build"/>
+    </content>
+    <orderEntry type="sourceFolder" forTests="false"/>
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar:///home/mdre/.gradle/caches/modules-2/files-2.1/org.ow2.asm/asm/7.1/fa29aa438674ff19d5e1386d2c3527a0267f291e/asm-7.1.jar!/"/>
+        </CLASSES>
+        <JAVADOC>
+          <root url="jar:///home/mdre/.gradle/caches/modules-2/files-2.1/org.ow2.asm/asm/7.1/c9fc020e4f8720a02b9ede027883b15f645c444c/asm-7.1-javadoc.jar!/"/>
+        </JAVADOC>
+        <SOURCES>
+          <root url="jar:///home/mdre/.gradle/caches/modules-2/files-2.1/org.ow2.asm/asm/7.1/9d170062d595240da35301362b079e5579c86f49/asm-7.1-sources.jar!/"/>
+        </SOURCES>
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" scope="TEST">
+      <library>
+        <CLASSES>
+          <root url="jar:///home/mdre/.gradle/caches/modules-2/files-2.1/junit/junit/4.13-beta-3/24e695de7450859f58dcfb2d818af908aee93e36/junit-4.13-beta-3.jar!/"/>
+        </CLASSES>
+        <JAVADOC>
+          <root url="jar:///home/mdre/.gradle/caches/modules-2/files-2.1/junit/junit/4.13-beta-3/7644fc6fd1d24cfa5aa72661d2d7e381e91d09ac/junit-4.13-beta-3-javadoc.jar!/"/>
+        </JAVADOC>
+        <SOURCES>
+          <root url="jar:///home/mdre/.gradle/caches/modules-2/files-2.1/junit/junit/4.13-beta-3/8c935ccfbc74f560aed6fb24ce52c7d177327a52/junit-4.13-beta-3-sources.jar!/"/>
+        </SOURCES>
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" scope="TEST">
+      <library>
+        <CLASSES>
+          <root url="jar:///home/mdre/.m2/repository/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar!/"/>
+        </CLASSES>
+        <JAVADOC/>
+        <SOURCES/>
+      </library>
+    </orderEntry>
+  </component>
+  <component name="ModuleRootManager"/>
+</module>

@@ -1,0 +1,4 @@
+#!/bin/bash
+LATEST="$(ls -t build/libs/odbogm-agent-all-* | head -1)"
+echo "instalando ${LATEST}..."
+cp ${LATEST} /opt/payara/glassfish/domains/domain1/lib/ext/odbogm-agent-all-1.0.0.jar
