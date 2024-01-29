@@ -26,6 +26,8 @@ try {
 ```
 
 If the agent was loaded from command line, you can set the class to detect as a parameter:
+```
 -javaagent:/opt/payara/glassfish/domains/domain1/lib/ext/tdd-agent-all-x.x.x.jar=net.odbogm.annotations.Entity
+```
 
 
