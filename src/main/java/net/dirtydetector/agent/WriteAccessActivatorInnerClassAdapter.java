@@ -47,8 +47,8 @@ public class WriteAccessActivatorInnerClassAdapter extends MethodVisitor
             LOGGER.log(Level.FINER, "className: {0}, outerClass: {1}", new String[]{className,outerClass});
             mv.visitFieldInsn(Opcodes.GETFIELD, this.className,"this$0","L"+this.outerClass+";");
             
-            mv.visitInsn(Opcodes.ICONST_1);
-            mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, outerClass, SETDIRTY, "(Z)V", false);
+            //mv.visitInsn(Opcodes.ICONST_1);
+            mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, outerClass, SETDIRTY, "()V", false);
             //mv.visitFieldInsn(Opcodes.PUTFIELD, owner, "__ogm__dirtyMark", "Z");
         }
         mv.visitInsn(opcode);
@@ -60,16 +60,25 @@ public class WriteAccessActivatorInnerClassAdapter extends MethodVisitor
         LOGGER.log(Level.FINER, "owner: {0} - name: {1} - desc: {2} - opcode: {3}", new Object[]{owner, name, desc, opcode});
         //  owner: test/Outer$1 - name: this$0 - desc: Ltest/Outer;
 
+        mv.visitFieldInsn(opcode, owner, name, desc);
         if (opcode == Opcodes.PUTFIELD && outerClass.equals(owner) && !ignoredFields.contains(name)) {
             this.activate = true;
+            
+            // registrar el campo
+            mv.visitVarInsn(Opcodes.ALOAD, 0);
+            mv.visitFieldInsn(Opcodes.GETFIELD, className, "this$0", "L"+outerClass+";");
+            mv.visitFieldInsn(Opcodes.GETFIELD, owner, MODIFIEDFIELDS, "Ljava/util/Set;");
+            mv.visitLdcInsn(name);
+            mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/util/Set", "add", "(Ljava/lang/Object;)Z", true);
+            mv.visitInsn(Opcodes.POP); // Descartar el resultado booleano de add
         }
-        mv.visitFieldInsn(opcode, owner, name, desc);
         LOGGER.log(Level.FINEST, "fin --------------------------------------------------");
     }
 
     @Override
     public void visitEnd() {
         LOGGER.log(Level.FINEST, "fin MethodVisitor -------------------------------------");
+//        mv.visitMaxs(0, 0);
         super.visitEnd();
     }
     

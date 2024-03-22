@@ -1,10 +1,14 @@
 package net.dirtydetector.agent;
 
+import java.util.Set;
+
 /**
  *
  * @author Marcelo D. Ré {@literal <marcelo.re@gmail.com>}
  */
 public interface ITransparentDirtyDetector {
-    public boolean ___ogm___isDirty();
-    public void ___ogm___setDirty(boolean b);
+    public boolean ___tdd___isDirty();
+    public void ___tdd___setDirty();
+    public void ___tdd___clearDirty();
+    public Set<String> ___tdd___getModifiedFields();
 }

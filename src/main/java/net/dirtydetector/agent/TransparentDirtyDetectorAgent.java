@@ -116,6 +116,8 @@ public class TransparentDirtyDetectorAgent {
                 Logger.getLogger(TransparentDirtyDetectorAgent.class.getName()).log(Level.SEVERE, null, ex);
                 throw new TDDAgentInitializationException(ex);
             }
+        } else {
+            LOGGER.log(Level.INFO, "Agent already loaded!");
         }
     }
 

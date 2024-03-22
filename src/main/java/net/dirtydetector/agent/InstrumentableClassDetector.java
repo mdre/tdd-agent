@@ -15,6 +15,7 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 
 /**
  *
@@ -87,11 +88,15 @@ public class InstrumentableClassDetector extends ClassVisitor  {
 
     @Override
     public FieldVisitor visitField(int access, String name, String descriptor, String signature, Object value) {
-        // TODO Auto-generated method stub
+        // FIXME: agregar una anotación para ignorar campos 
+        FieldVisitor fv = super.visitField(access, name, descriptor, signature, value);
         if (this.isInstrumentable && (access & Opcodes.ACC_TRANSIENT)!= 0) {
             this.ignoredFields.add(name);
+            return fv;
+        } else {
+            // determinar si se debe ignorar
+            return new FieldAnnotationVisitor(fv, name);
         }
-        return super.visitField(access, name, descriptor, signature, value);
     }
 
     @Override
@@ -117,5 +122,21 @@ public class InstrumentableClassDetector extends ClassVisitor  {
 
     public List<String> getIgnoredFields() {
         return this.ignoredFields;
+    }
+    
+    class FieldAnnotationVisitor extends FieldVisitor {
+        String name;
+        public FieldAnnotationVisitor(FieldVisitor fv, String name) {
+            super(Opcodes.ASM9, fv);
+            this.name = name;
+        }
+
+        @Override
+        public AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
+            if (Type.getType(descriptor).getClassName().equals(TDDIgnore.class.getName())) {
+                ((InstrumentableClassDetector) cv).ignoredFields.add(name);
+            }
+            return super.visitAnnotation(descriptor, visible);
+        }
     }
 }
