@@ -1,5 +1,6 @@
 package net.dirtydetector.agent;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -13,7 +14,7 @@ import org.objectweb.asm.Opcodes;
  * 
  * @author Marcelo D. Ré {@literal <marcelo.re@gmail.com>}
  */
-public class TransparentDirtyDetectorInnerClassAdapter extends ClassVisitor implements ITransparentDirtyDetectorDef {
+public class TransparentDirtyDetectorInnerClassAdapter extends ClassVisitor implements ITransparentDirtyDetectorDef, IJavaCollections {
 
     private final static Logger LOGGER = Logger.getLogger(TransparentDirtyDetectorInnerClassAdapter.class.getName());
     static {
@@ -25,11 +26,13 @@ public class TransparentDirtyDetectorInnerClassAdapter extends ClassVisitor impl
     private boolean isFieldPresent = false;
     private String className;
     private List<String> ignoredFields;
+    private List<String> collectionsFields = new ArrayList();
     
-    public TransparentDirtyDetectorInnerClassAdapter(ClassVisitor cv, String cn, List<String> ignoredFields) {
+    public TransparentDirtyDetectorInnerClassAdapter(ClassVisitor cv, String cn, List<String> ignoredFields, List<String> collectionsFields) {
         super(Opcodes.ASM9, cv);
         this.className = cn;
         this.ignoredFields = ignoredFields;
+        this.collectionsFields = collectionsFields;
     }
 
 
@@ -41,7 +44,7 @@ public class TransparentDirtyDetectorInnerClassAdapter extends ClassVisitor impl
         mv = cv.visitMethod(access & (~Opcodes.ACC_FINAL), name, desc, signature, exceptions);
         if ((mv != null) && !name.equals("<init>") && !name.equals("<clinit>")) {
             LOGGER.log(Level.FINER, ">>>>>>>>>>> Instrumentando método: {0}", name);
-            mv = new WriteAccessActivatorInnerClassAdapter(mv, className, ignoredFields);
+            mv = new WriteAccessActivatorInnerClassAdapter(Opcodes.ASM9, className, access, name, desc, mv, ignoredFields, collectionsFields);
             LOGGER.log(Level.FINEST, "fin instrumentación ---------------------------------------------------");
         } else {
             LOGGER.log(Level.FINEST, "mv = NULL !!!! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
@@ -51,15 +54,6 @@ public class TransparentDirtyDetectorInnerClassAdapter extends ClassVisitor impl
 
     @Override
     public void visitEnd() {
-//        if (!isFieldPresent) {
-//            LOGGER.log(Level.FINER, "Agregando el campo");
-//            FieldVisitor fv = cv.visitField(Opcodes.ACC_PUBLIC, DIRTYMARK,
-//                    org.objectweb.asm.Type.BOOLEAN_TYPE.getDescriptor(), null, null);
-//            if (fv != null) {
-//                fv.visitEnd();
-//                LOGGER.log(Level.FINER, "fv.visitEnd..");
-//            }
-//        }
         cv.visitEnd();
     }
 

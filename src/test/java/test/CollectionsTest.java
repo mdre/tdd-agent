@@ -170,11 +170,17 @@ public class CollectionsTest {
     
     public void caso11() {
         
-        list.clear(); //add("list");
+        Inner i = new Inner();
+        i.modifyField();
         
     }
+    
+    class Inner {
+        public void modifyField() {
+            list.add("lista");
+        }
+    }
 }
-
 
 
 

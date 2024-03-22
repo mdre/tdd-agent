@@ -21,7 +21,7 @@ import org.objectweb.asm.Type;
  *
  * @author Marcelo D. Ré {@literal <marcelo.re@gmail.com>}
  */
-public class InstrumentableClassDetector extends ClassVisitor  {
+public class InstrumentableClassDetector extends ClassVisitor implements IJavaCollections {
 
     private final static Logger LOGGER = Logger.getLogger(InstrumentableClassDetector.class.getName());
     static {
@@ -37,6 +37,7 @@ public class InstrumentableClassDetector extends ClassVisitor  {
 
     private List<String> innerClasses = new ArrayList<>();
     private List<String> ignoredFields = new ArrayList();
+    private List<String> collectionsFields = new ArrayList();
     private String clazzName = null;
     
     public InstrumentableClassDetector(ClassVisitor cv) {
@@ -92,11 +93,15 @@ public class InstrumentableClassDetector extends ClassVisitor  {
         FieldVisitor fv = super.visitField(access, name, descriptor, signature, value);
         if (this.isInstrumentable && (access & Opcodes.ACC_TRANSIENT)!= 0) {
             this.ignoredFields.add(name);
-            return fv;
         } else {
             // determinar si se debe ignorar
-            return new FieldAnnotationVisitor(fv, name);
+            fv = new FieldAnnotationVisitor(fv, name);
+            if (getJavaCollections().contains(descriptor) && !ignoredFields.contains(name)) {
+                LOGGER.log(Level.FINEST, "Colección detectada: "+name+" : "+descriptor);
+                collectionsFields.add(name);
+            }
         }
+        return fv;
     }
 
     @Override
@@ -113,9 +118,11 @@ public class InstrumentableClassDetector extends ClassVisitor  {
     public synchronized boolean isInstrumentable() {
         return this.isInstrumentable;
     }
+    
     public synchronized boolean isInstrumented() {
         return this.isInstrumented;
     }
+    
     public synchronized boolean hasDefaultContructor() {
         return this.hasDefaultContructor;
     }
@@ -123,6 +130,11 @@ public class InstrumentableClassDetector extends ClassVisitor  {
     public List<String> getIgnoredFields() {
         return this.ignoredFields;
     }
+    
+    public List<String> getCollectionsFields() {
+        return this.collectionsFields;
+    }
+    
     
     class FieldAnnotationVisitor extends FieldVisitor {
         String name;

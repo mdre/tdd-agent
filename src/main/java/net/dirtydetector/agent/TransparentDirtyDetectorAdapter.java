@@ -29,9 +29,10 @@ public class TransparentDirtyDetectorAdapter extends ClassVisitor implements ITr
     private String className;
 //    private HashSet<String> javaCollections = new HashSet();
     
-    public TransparentDirtyDetectorAdapter(ClassVisitor cv, List<String> ignoredFields) {
+    public TransparentDirtyDetectorAdapter(ClassVisitor cv, List<String> ignoredFields, List<String> collectionsFields) {
         super(Opcodes.ASM9, cv);
         this.ignoredFields = ignoredFields;
+        this.collectionsFields = collectionsFields;
     }
 
     @Override
@@ -57,10 +58,10 @@ public class TransparentDirtyDetectorAdapter extends ClassVisitor implements ITr
             isFieldPresent = true;
             LOGGER.log(Level.FINER, "El campo ya existe!!!! WARNING!!! Esto no deberia ocurrir!!! ************************");
         }
-        if (getJavaCollections().contains(desc) && !ignoredFields.contains(name)) {
-            LOGGER.log(Level.FINEST, "Colección detectada: "+name+" : "+desc);
-            collectionsFields.add(name);
-        }
+//        if (getJavaCollections().contains(desc) && !ignoredFields.contains(name)) {
+//            LOGGER.log(Level.FINEST, "Colección detectada: "+name+" : "+desc);
+//            collectionsFields.add(name);
+//        }
         return cv.visitField(access, name, desc, signature, value);
     }
 

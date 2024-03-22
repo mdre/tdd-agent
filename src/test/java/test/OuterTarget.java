@@ -82,6 +82,13 @@ public class OuterTarget implements ITransparentDirtyDetector {
             OuterTarget.this.___tdd___modifiedFields.add("member");
             ___tdd___setDirty();
         }
+        
+        public void setOuterCollection(String text) {
+            lista.add("lista");
+            ___tdd___modifiedFields.add("lista");
+            ___tdd___setDirty();
+        }
+        
     }
     
     
@@ -168,5 +175,4 @@ public class OuterTarget implements ITransparentDirtyDetector {
     }
     
     
-
 }

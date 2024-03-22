@@ -194,7 +194,7 @@ public class TransparentDirtyDetectorInstrumentator
                             }
                         }
                     };
-                    TransparentDirtyDetectorAdapter taa = new TransparentDirtyDetectorAdapter(cw, icd.getIgnoredFields());
+                    TransparentDirtyDetectorAdapter taa = new TransparentDirtyDetectorAdapter(cw, icd.getIgnoredFields(), icd.getCollectionsFields());
                     try {
                         crRedefine.accept(taa, ClassReader.EXPAND_FRAMES | ClassReader.SKIP_FRAMES ); // estaba con SKIP_FRAMES
                     } catch (Exception e) {
@@ -329,7 +329,7 @@ public class TransparentDirtyDetectorInstrumentator
                         };
 
                         // activar el chequeo de la clase
-                        TransparentDirtyDetectorInnerClassAdapter taa = new TransparentDirtyDetectorInnerClassAdapter(new CheckClassAdapter(cw,true), className, oicd.getIgnoredFields());
+                        TransparentDirtyDetectorInnerClassAdapter taa = new TransparentDirtyDetectorInnerClassAdapter(new CheckClassAdapter(cw,true), className, oicd.getIgnoredFields(), oicd.getCollectionsFields());
                         try {
                             crRedefine.accept(taa, ClassReader.EXPAND_FRAMES);
 
