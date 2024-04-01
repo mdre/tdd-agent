@@ -30,4 +30,6 @@ If the agent was loaded from command line, you can set the class to detect as a 
 -javaagent:/opt/payara/glassfish/domains/domain1/lib/ext/tdd-agent-all-x.x.x.jar=net.odbogm.annotations.Entity
 ```
 
-
+The agent early ignore some packages as a default to speed up the detection process. If you want, you can add more classes to ignore by calling
+`addIgnore(<pkg>)`. Theres also a removeIgnore() and getIgnored() methods.
+As a default, TDD early ignores all classes that whos packages that start with "java.", "sun.", "org.gradle.", "worker.org.gradle."
