@@ -13,8 +13,11 @@ import java.net.URISyntaxException;
 import java.util.jar.Attributes;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.config.Configurator;
 
 /**
  *
@@ -22,12 +25,11 @@ import java.util.logging.Logger;
  */
 public class TransparentDirtyDetectorAgent {
 
-    private final static Logger LOGGER = Logger.getLogger(TransparentDirtyDetectorAgent.class.getName());
+    private final static Logger LOGGER = LogManager.getLogger(TransparentDirtyDetectorAgent.class.getName());
 
     static {
-        if (LOGGER.getLevel() == null) {
-            LOGGER.setLevel(LogginProperties.TransparentDirtyDetectorAgent);
-        }
+        Configurator.setLevel(TransparentDirtyDetectorAgent.class.getName(),
+                              LogginProperties.TransparentDirtyDetectorAgent);
     }
 
     private static Instrumentation instrumentation;
@@ -64,11 +66,12 @@ public class TransparentDirtyDetectorAgent {
         LOGGER.log(Level.INFO, "===============================================");
         LOGGER.log(Level.INFO, "Transparent Dirty Detector Agent is loading... ");
         LOGGER.log(Level.INFO, "===============================================");
-        LOGGER.log(Level.FINER, "premain method invoked with args: {0} and inst: {1}", new Object[]{args, inst});
+        LOGGER.log(Level.DEBUG, "premain method invoked with args: {} and inst: {}", new Object[]{args, inst});
         LOGGER.log(Level.INFO, "");
         instrumentation = inst;
         tddi = new TransparentDirtyDetectorInstrumentator(args);
         instrumentation.addTransformer(tddi);
+//        System.setOut(new CustomPrintStream(System.out));
         LOGGER.log(Level.INFO, "================= Agente cargado ==============");
     }
 
@@ -85,7 +88,7 @@ public class TransparentDirtyDetectorAgent {
         LOGGER.log(Level.INFO, "===============================================");
         LOGGER.log(Level.INFO, "Transparent Dirty Detector Agent is loading... ");
         LOGGER.log(Level.INFO, "===============================================");
-        LOGGER.log(Level.FINER, "agentmain method invoked with args: {0} and inst: {1}", new Object[]{args, inst});
+        LOGGER.log(Level.DEBUG, "agentmain method invoked with args: {} and inst: {}", new Object[]{args, inst});
         LOGGER.log(Level.INFO, "");
         instrumentation = inst;
         tddi = new TransparentDirtyDetectorInstrumentator(args);
@@ -104,7 +107,7 @@ public class TransparentDirtyDetectorAgent {
                 LOGGER.log(Level.INFO, "Dynamically loading java agent...");
                 String pathToAgent = TransparentDirtyDetectorAgent.class
                         .getProtectionDomain().getCodeSource().getLocation().toURI().getPath();
-                LOGGER.log(Level.INFO, "path: {0}", pathToAgent);
+                LOGGER.log(Level.INFO, "path: {}", pathToAgent);
                 if (pathToAgent.endsWith(".jar")) {
                     loadAgent(pathToAgent, null);
                 } else {
@@ -113,7 +116,7 @@ public class TransparentDirtyDetectorAgent {
                 }
             } catch (URISyntaxException | AttachNotSupportedException | IOException |
                     AgentLoadException | AgentInitializationException ex) {
-                Logger.getLogger(TransparentDirtyDetectorAgent.class.getName()).log(Level.SEVERE, null, ex);
+                LOGGER.log(Level.FATAL, ex);
                 throw new TDDAgentInitializationException(ex);
             }
         } else {
@@ -201,7 +204,7 @@ public class TransparentDirtyDetectorAgent {
         }
         catch (AttachNotSupportedException | IOException | AgentLoadException | AgentInitializationException ex)
         {
-            Logger.getLogger(TransparentDirtyDetectorAgent.class.getName()).log(Level.SEVERE, null, ex);
+            LOGGER.log(Level.FATAL, ex);
         }
     }
     

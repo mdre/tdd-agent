@@ -1,8 +1,11 @@
 package net.dirtydetector.agent;
 
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.config.Configurator;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
@@ -12,15 +15,14 @@ import org.objectweb.asm.Opcodes;
  */
 public class WriteConstructorAccessActivatorAdapter extends MethodVisitor implements ITransparentDirtyDetectorDef {
 
-    private final static Logger LOGGER = Logger.getLogger(WriteConstructorAccessActivatorAdapter.class.getName());
+    private final static Logger LOGGER = LogManager.getLogger(WriteConstructorAccessActivatorAdapter.class.getName());
     private List<String> ignoreFields;
     private String className;
     private boolean initialize = true;
     
     static {
-        if (LOGGER.getLevel() == null) {
-            LOGGER.setLevel(LogginProperties.WriteConstructorAccessActivatorAdapter);
-        }
+        Configurator.setLevel(WriteConstructorAccessActivatorAdapter.class.getName(),
+                              LogginProperties.WriteConstructorAccessActivatorAdapter);
     }
     
     public WriteConstructorAccessActivatorAdapter(String className, MethodVisitor mv, List ignoreFields) {
@@ -32,16 +34,16 @@ public class WriteConstructorAccessActivatorAdapter extends MethodVisitor implem
     @Override
     public void visitCode() {
         super.visitCode();
-        LOGGER.log(Level.FINEST, "visit code!");
+        LOGGER.log(Level.TRACE, "visit code!");
     }
 
     @Override
     public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
         super.visitMethodInsn(opcode, owner, name, descriptor, isInterface); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/OverriddenMethodBody
-        LOGGER.log(Level.FINEST, "visit MethodInsn!");
+        LOGGER.log(Level.TRACE, "visit MethodInsn!");
         if (this.initialize) {
-            LOGGER.log(Level.FINEST, "insertar la inicialización del hashset...");
-            LOGGER.log(Level.FINEST, "className: {1}",className);
+            LOGGER.log(Level.TRACE, "insertar la inicialización del hashset...");
+            LOGGER.log(Level.TRACE, "className: {1}",new Object[]{className});
 
             // Crear una nueva instancia de HashSet
             mv.visitVarInsn(Opcodes.ALOAD, 0);
@@ -56,18 +58,18 @@ public class WriteConstructorAccessActivatorAdapter extends MethodVisitor implem
     
     @Override
     public synchronized void visitFieldInsn(int opcode, String owner, String name, String desc) {
-        LOGGER.log(Level.FINER, "owner: {0} - name: {1} - desc: {2} - opcode: {3}", new Object[]{owner, name, desc, opcode});
+        LOGGER.log(Level.DEBUG, "owner: {} - name: {} - desc: {} - opcode: {}", new Object[]{owner, name, desc, opcode});
         //  owner: test/Outer$1 - name: this$0 - desc: Ltest/Outer;
 
         mv.visitFieldInsn(opcode, owner, name, desc);
-        LOGGER.log(Level.FINEST, "fin --------------------------------------------------");
+        LOGGER.log(Level.TRACE, "fin --------------------------------------------------");
     }
     
     
     @Override
     public void visitEnd() {
 
-        LOGGER.log(Level.FINEST, "fin Constructor MethodVisitor -------------------------------------");
+        LOGGER.log(Level.TRACE, "fin Constructor MethodVisitor -------------------------------------");
 //        mv.visitMaxs(0, 0);
         super.visitEnd();
     }

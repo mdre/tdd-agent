@@ -5,8 +5,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.config.Configurator;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
@@ -21,12 +24,11 @@ import org.objectweb.asm.util.Printer;
 public class WriteAccessActivatorInnerClassAdapter extends AnalyzerAdapter
         implements ITransparentDirtyDetectorDef, IJavaCollections {
 
-    private final static Logger LOGGER = Logger.getLogger(WriteAccessActivatorInnerClassAdapter.class.getName());
+    private final static Logger LOGGER = LogManager.getLogger(WriteAccessActivatorInnerClassAdapter.class.getName());
 
     static {
-        if (LOGGER.getLevel() == null) {
-            LOGGER.setLevel(LogginProperties.WriteAccessActivatorInnerClassAdapter);
-        }
+        Configurator.setLevel(WriteAccessActivatorInnerClassAdapter.class.getName(),
+                              LogginProperties.WriteAccessActivatorInnerClassAdapter);
     }
 
     private boolean activate = false;
@@ -64,7 +66,7 @@ public class WriteAccessActivatorInnerClassAdapter extends AnalyzerAdapter
      */
     @Override
     public synchronized void visitInsn(int opcode) {
-        LOGGER.log(Level.FINER, "Activate: {0}", this.activate);
+        LOGGER.log(Level.DEBUG, "Activate: {0}", this.activate);
         if ((this.activate) && ((opcode >= Opcodes.IRETURN && opcode <= Opcodes.RETURN) || opcode == Opcodes.ATHROW)) {
             // si hay colleciones agregadas, incluirlas como dirty antes de retornar. 
             if (lastCollectionModifiedFields.size() > 0) {
@@ -72,11 +74,11 @@ public class WriteAccessActivatorInnerClassAdapter extends AnalyzerAdapter
                 lastCollectionModifiedFields.clear();
             }
 
-            LOGGER.log(Level.FINER, "Agregando llamada a setDirty...");
+            LOGGER.log(Level.DEBUG, "Agregando llamada a setDirty...");
             mv.visitVarInsn(Opcodes.ALOAD, 0);
             //getfield test/OuterTarget$1.this$0:test.OuterTarget
 
-            LOGGER.log(Level.FINER, "className: {0}, outerClass: {1}", new String[]{className, outerClass});
+            LOGGER.log(Level.DEBUG, "className: {0}, outerClass: {1}", new String[]{className, outerClass});
             mv.visitFieldInsn(Opcodes.GETFIELD, this.className, "this$0", "L" + this.outerClass + ";");
 
             //mv.visitInsn(Opcodes.ICONST_1);
@@ -84,12 +86,12 @@ public class WriteAccessActivatorInnerClassAdapter extends AnalyzerAdapter
             //mv.visitFieldInsn(Opcodes.PUTFIELD, owner, "__ogm__dirtyMark", "Z");
         }
         mv.visitInsn(opcode);
-        LOGGER.log(Level.FINEST, "fin --------------------------------------------------");
+        LOGGER.log(Level.TRACE, "fin --------------------------------------------------");
     }
 
     @Override
     public synchronized void visitFieldInsn(int opcode, String owner, String name, String desc) {
-        LOGGER.log(Level.FINER, "owner: {0} - name: {1} - desc: {2} - opcode: {3}", new Object[]{owner, name, desc, opcode});
+        LOGGER.log(Level.DEBUG, "owner: {0} - name: {1} - desc: {2} - opcode: {3}", new Object[]{owner, name, desc, opcode});
         //  owner: test/Outer$1 - name: this$0 - desc: Ltest/Outer;
 
         mv.visitFieldInsn(opcode, owner, name, desc);
@@ -103,16 +105,16 @@ public class WriteAccessActivatorInnerClassAdapter extends AnalyzerAdapter
             // registrar el campo
             insertDirtyField(name);
         }
-        LOGGER.log(Level.FINEST, "fin --------------------------------------------------");
+        LOGGER.log(Level.TRACE, "fin --------------------------------------------------");
     }
 
     @Override
     public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
-        LOGGER.log(Level.FINEST, "opcode: {0} - owner: {1} - name: {2} - desc: {3} - isInterface: {4}", new Object[]{Printer.OPCODES[opcode], owner, name, descriptor, isInterface});
+        LOGGER.log(Level.TRACE, "opcode: {0} - owner: {1} - name: {2} - desc: {3} - isInterface: {4}", new Object[]{Printer.OPCODES[opcode], owner, name, descriptor, isInterface});
         printStack();
         // si el método coincide con una de las clases y métodos a monitorear, revisar el stack para verificar
         // que el campo sea un field.
-        LOGGER.log(Level.FINEST, "activable object?: " + getJavaCollections().contains("L" + owner + ";")
+        LOGGER.log(Level.TRACE, "activable object?: " + getJavaCollections().contains("L" + owner + ";")
                 + " - method: " + name + "> activable? : " + getJavaCollectionsDirtyMethods().contains(name));
         if ((getJavaCollections().contains("L" + owner + ";")) && (getJavaCollectionsDirtyMethods().contains(name))) {
             // calcular la posición de la pila a acceder
@@ -121,7 +123,7 @@ public class WriteAccessActivatorInnerClassAdapter extends AnalyzerAdapter
             int stackIdx = this.stack == null ? 0 : this.stack.size() - 1 - stackOffset;
             String field = this.stackToField.get("" + stackIdx);
 
-            LOGGER.log(Level.FINEST, "modificación de una colección detectada! stack idx: " + stackIdx + " field: " + field);
+            LOGGER.log(Level.TRACE, "modificación de una colección detectada! stack idx: " + stackIdx + " field: " + field);
             if (this.collectionFields.contains(field)) {
                 lastCollectionModifiedFields.add(field);
                 this.activate = true;
@@ -135,7 +137,7 @@ public class WriteAccessActivatorInnerClassAdapter extends AnalyzerAdapter
     @Override
     public void visitInvokeDynamicInsn(String name, String descriptor, Handle bootstrapMethodHandle, Object... bootstrapMethodArguments) {
         super.visitInvokeDynamicInsn(name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments); 
-        LOGGER.log(Level.FINEST, "\n\n\n\n\nname: "+name+" - desc: "+descriptor+"   bs: "+ Arrays.toString(bootstrapMethodArguments));
+        LOGGER.log(Level.TRACE, "\n\n\n\n\nname: "+name+" - desc: "+descriptor+"   bs: "+ Arrays.toString(bootstrapMethodArguments));
         printStack();
         
         for (Object bsMthArg : bootstrapMethodArguments) {
@@ -145,12 +147,12 @@ public class WriteAccessActivatorInnerClassAdapter extends AnalyzerAdapter
             if (dot > 0 && bracket > 0) {
                 String cls = "L"+bsMth.substring(0, dot)+";";
                 String mth = bsMth.substring(dot+1, bracket);
-                LOGGER.log(Level.FINEST, "cls: "+cls + "   -   method: "+mth);
+                LOGGER.log(Level.TRACE, "cls: "+cls + "   -   method: "+mth);
 
                 if (getJavaCollections().contains(cls) && getJavaCollectionsDirtyMethods().contains(mth)) {
                     int stackIdx = this.stack.size() - 1 ;
                     String field = this.stackToField.get(""+stackIdx);
-                    LOGGER.log(Level.FINEST, "modificación de una colección detectada! stack idx: "+stackIdx+" field: "+field);
+                    LOGGER.log(Level.TRACE, "modificación de una colección detectada! stack idx: "+stackIdx+" field: "+field);
                     if (this.collectionFields.contains(field)) {
                         lastCollectionModifiedFields.add(field);
                         this.activate = true;
@@ -159,22 +161,22 @@ public class WriteAccessActivatorInnerClassAdapter extends AnalyzerAdapter
             }
         }
         
-        LOGGER.log(Level.FINEST, "\n\n\n\n\n");
+        LOGGER.log(Level.TRACE, "\n\n\n\n\n");
         
     }
 
     @Override
     public void visitLabel(Label label) {
-        LOGGER.log(Level.FINEST, "Label: "+label);
+        LOGGER.log(Level.TRACE, "Label: "+label);
         if (lastCollectionModifiedFields.size()>0){
             // si se ha agregado un collectionModifiedField, instrumentar add del campo
-            LOGGER.log(Level.FINEST, "Modificaciones detectadas!! Agregar los campos a la lista.");
+            LOGGER.log(Level.TRACE, "Modificaciones detectadas!! Agregar los campos a la lista.");
             printStack();
             insertDirtyCollectionsFields();
             
             // resetear el campo
             lastCollectionModifiedFields.clear();
-            LOGGER.log(Level.FINEST, " --------------------------------------------------");
+            LOGGER.log(Level.TRACE, " --------------------------------------------------");
         }
         super.visitLabel(label); 
     }
@@ -194,14 +196,14 @@ public class WriteAccessActivatorInnerClassAdapter extends AnalyzerAdapter
     
     @Override
     public void visitEnd() {
-        LOGGER.log(Level.FINEST, "fin MethodVisitor -------------------------------------");
+        LOGGER.log(Level.TRACE, "fin MethodVisitor -------------------------------------");
 //        mv.visitMaxs(0, 0);
         super.visitEnd();
     }
 
     //=================================================================================================
     private void printStack() {
-        if (LOGGER.isLoggable(Level.FINEST)) {
+        if (LOGGER.isEnabled(Level.TRACE)) {
             if (this.stack != null) {
                 System.out.println("stack size:" + this.stack.size());
 

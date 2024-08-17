@@ -9,8 +9,11 @@ import java.security.ProtectionDomain;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.config.Configurator;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
@@ -24,23 +27,23 @@ import org.objectweb.asm.util.CheckClassAdapter;
 public class TransparentDirtyDetectorInstrumentator
         implements ClassFileTransformer, ITransparentDirtyDetectorDef {
 
-    private final static Logger LOGGER = Logger.getLogger(TransparentDirtyDetectorInstrumentator.class.getName());
+    private final static Logger LOGGER = LogManager.getLogger(TransparentDirtyDetectorInstrumentator.class.getName());
 
     static {
-        if (LOGGER.getLevel() == null) {
-            LOGGER.setLevel(LogginProperties.TransparentDirtyDetectorInstrumentator);
-        } else {
-            System.out.println("TDDI: " + LOGGER.getLevel());
-        }
+        Configurator.setLevel(TransparentDirtyDetectorInstrumentator.class.getName(),
+                            LogginProperties.TransparentDirtyDetectorInstrumentator);
     }
 
-    private List<String> instrumentableClassDetector = new ArrayList();
+    private String dumpDirectoryPath;
+    private List<String> instrumentableClassDetector = new ArrayList<>();
     private List<String> ignored = new ArrayList(Arrays.asList("java/",
-                                                                      "jdk/",
-                                                                      "sun/", 
-                                                                      "org/gradle/", 
-                                                                      "worker/org/gradle/"
-                                                                     )
+                                                               "jdk/",
+                                                               "sun/",
+                                                               "com/sun/",
+                                                               "org/gradle/", 
+                                                               "worker/org/gradle/",
+                                                               "org/slf4j"
+                                                               )
                                                     );
     
     /**
@@ -48,9 +51,8 @@ public class TransparentDirtyDetectorInstrumentator
      */
     public TransparentDirtyDetectorInstrumentator(String classDetector) {
         if (classDetector != null) {
-            this.instrumentableClassDetector = List.of(classDetector.split("&"));
+            this.instrumentableClassDetector.addAll(List.of(classDetector.split("&")));
         }
-        this.ignored.add("java/");
     }
 
     /**
@@ -106,11 +108,21 @@ public class TransparentDirtyDetectorInstrumentator
         return this.ignored;
     }
     
+    // public TransparentDirtyDetectorInstrumentator setClassLevelLog(Class<?> clazz, Level level) {
+    //     Logger L = Logger.getLogger(clazz.getName());
+    //     L.setLevel(level);
+    //     return this;
+    // }
+    
+    public TransparentDirtyDetectorInstrumentator enableDumpDebugDirectory(String pathToDumpDirectory) {
+        this.dumpDirectoryPath = pathToDumpDirectory;
+        return this;
+    }
     
     /**
      * Implementación del Agente.
      *
-     * Si se establece el nivel FINER para esta clase, se realiza un volcado a disco de las clases intervenidas en la carpeta /tmp/asm.
+     * Si se establece el nivel DEBUG para esta clase, se realiza un volcado a disco de las clases intervenidas en la carpeta /tmp/asm.
      *
      * @param loader classloader
      * @param className nombre de la clase
@@ -124,28 +136,23 @@ public class TransparentDirtyDetectorInstrumentator
     public synchronized byte[] transform(ClassLoader loader, String className, Class classBeingRedefined,
             ProtectionDomain protectionDomain, byte[] classfileBuffer)
             throws IllegalClassFormatException {
-
         // verificar si se debe analizar o se ignora
         boolean shouldAnalyze = true;
         for (String ignore : this.ignored) {
             if (className.startsWith(ignore)) {
                 shouldAnalyze = false;
-                LOGGER.log(Level.FINEST, "\n\nIgnorando clase: {0}...", className);
+                LOGGER.log(Level.TRACE, "Ignorando clase: {}...", className);
                 break;
             }
         }
         
         if (shouldAnalyze) {
-            LOGGER.log(Level.FINEST, "\n\nanalizando clase: {0}...", className);
-
-            if (className.startsWith("test")) {
-                LOGGER.log(Level.FINER, "\n\n >>>>>>>>>>>>>>>>>>> analizando clase: {0}...", className);
-            }
+            LOGGER.log(Level.DEBUG, "analizando clase: {}...", className);
 
             ClassReader cr = new ClassReader(classfileBuffer);
             if (isInterface(cr)) {
                 // No procesar las interfaces
-                LOGGER.log(Level.FINEST, "Interface detectada {0}. NO PROCESAR!", className);
+                LOGGER.log(Level.DEBUG, "Interface detectada {}. NO PROCESAR!", className);
                 return classfileBuffer;
             }
 
@@ -158,11 +165,11 @@ public class TransparentDirtyDetectorInstrumentator
                 InstrumentableClassDetector icd = new InstrumentableClassDetector(cw).setInstrumentableClassFilter(instrumentableClassDetector);
                 cr.accept(icd, 0);
 
-                LOGGER.log(Level.FINEST, "isInstrumentable: " + icd.isInstrumentable());
+                LOGGER.log(Level.DEBUG, "isInstrumentable: " + icd.isInstrumentable());
                 if (icd.isInstrumentable() && !icd.isInstrumented()) {
-                    LOGGER.log(Level.FINER, ""
+                    LOGGER.log(Level.DEBUG, ""
                             + "\n****************************************************************************"
-                            + "\nRedefiniendo on-the-fly {0}..."
+                            + "\nRedefiniendo on-the-fly {}..."
                             + "\n****************************************************************************",
                             className);
                     ClassReader crRedefine = new ClassReader(classfileBuffer);
@@ -170,7 +177,7 @@ public class TransparentDirtyDetectorInstrumentator
                         // Asegurar que se usa el mismo CL para cargar las clases.
                         @Override
                         protected String getCommonSuperClass(String type1, String type2) {
-                            LOGGER.log(Level.FINER, "type1: " + type1 + "   - type2: " + type2);
+                            LOGGER.log(Level.DEBUG, "type1: " + type1 + "   - type2: " + type2);
                             Class<?> c, d;
                             try {
                                 c = Class.forName(type1.replace('/', '.'), false, loader);
@@ -198,11 +205,11 @@ public class TransparentDirtyDetectorInstrumentator
                     try {
                         crRedefine.accept(taa, ClassReader.EXPAND_FRAMES | ClassReader.SKIP_FRAMES ); // estaba con SKIP_FRAMES
                     } catch (Exception e) {
-                        LOGGER.log(Level.SEVERE, "ERROR <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+                        LOGGER.log(Level.ERROR, "ERROR <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
                         e.printStackTrace();
                     }
                     // instrumentar el método ___getDirty()
-                    LOGGER.log(Level.FINER, "insertando el método ___isDirty() ...");
+                    LOGGER.log(Level.DEBUG, "insertando el método ___isDirty() ...");
                     MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC, ISDIRTY, "()Z", null, null);
                     mv.visitCode();
                     mv.visitVarInsn(Opcodes.ALOAD, 0);
@@ -212,7 +219,7 @@ public class TransparentDirtyDetectorInstrumentator
                     mv.visitEnd();
 
                     // instrumentar el método ___setDirty()
-                    LOGGER.log(Level.FINER, "insertando el método ___setDirty() ...");
+                    LOGGER.log(Level.DEBUG, "insertando el método ___setDirty() ...");
                     mv = cw.visitMethod(Opcodes.ACC_PUBLIC, SETDIRTY, "()V", null, null);
                     mv.visitCode();
                     mv.visitVarInsn(Opcodes.ALOAD, 0);
@@ -222,7 +229,7 @@ public class TransparentDirtyDetectorInstrumentator
                     mv.visitMaxs(1, 1);
                     mv.visitEnd();
 
-                    LOGGER.log(Level.FINER, "insertando el método ___tdd___clearDirty() ...");
+                    LOGGER.log(Level.DEBUG, "insertando el método ___tdd___clearDirty() ...");
                     mv = cw.visitMethod(Opcodes.ACC_PUBLIC, CLEARDIRTY, "()V", null, null);
                     mv.visitCode();
                     mv.visitVarInsn(Opcodes.ALOAD, 0);
@@ -235,7 +242,7 @@ public class TransparentDirtyDetectorInstrumentator
                     mv.visitMaxs(2, 1);
                     mv.visitEnd();
                     
-                    LOGGER.log(Level.FINER, "insertando el método ___tdd___getModifiedFields() ...");
+                    LOGGER.log(Level.DEBUG, "insertando el método ___tdd___getModifiedFields() ...");
                     mv = cw.visitMethod(Opcodes.ACC_PUBLIC, GETMODIFIEDFIELDS, "()Ljava/util/Set;", null, null);
                     mv.visitCode();
                     mv.visitVarInsn(Opcodes.ALOAD, 0);
@@ -246,14 +253,14 @@ public class TransparentDirtyDetectorInstrumentator
                     
                     // detectar si tiene el contructor por defecto y en caso de no tenerlo insertar uno.
                     if (!icd.hasDefaultContructor()) {
-                        LOGGER.log(Level.FINER, "No se ha encontrado el contructor por defecto. Insertando uno...");
+                        LOGGER.log(Level.DEBUG, "No se ha encontrado el contructor por defecto. Insertando uno...");
                         mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "()V", null, null);
                         mv.visitCode();
                         mv.visitVarInsn(Opcodes.ALOAD, 0);
                         mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false);
                         
                         // inicializar el Set de campos
-                        LOGGER.log(Level.FINEST, "inicializar el hashset...");
+                        LOGGER.log(Level.TRACE, "inicializar el hashset...");
                         mv.visitVarInsn(Opcodes.ALOAD, 0);
                         mv.visitTypeInsn(Opcodes.NEW, "java/util/HashSet");
                         mv.visitInsn(Opcodes.DUP);
@@ -264,16 +271,17 @@ public class TransparentDirtyDetectorInstrumentator
                         mv.visitMaxs(1, 1);
                         mv.visitEnd();
                     } else {
-                        LOGGER.log(Level.FINER, "Se ha encontrado el contructor por defecto. ");
+                        LOGGER.log(Level.DEBUG, "Se ha encontrado el contructor por defecto. ");
                     }
-
-                    if ((LOGGER.getLevel() == Level.FINER)||(LOGGER.getLevel() == Level.FINEST)) {
+                    LOGGER.log(Level.INFO, "-=-=-=-=-=-=-=-");
+                    LOGGER.log(Level.INFO, "dump to: {}",(dumpDirectoryPath==null?"NULL":dumpDirectoryPath));
+                    if (this.dumpDirectoryPath!=null || (LOGGER.getLevel() == Level.DEBUG)||(LOGGER.getLevel() == Level.TRACE)) {
                         writeToFile(className, cw.toByteArray());
                     }
-                    LOGGER.log(Level.FINER, "FIN instrumentación {0}"
+                    LOGGER.log(Level.DEBUG, "\n\n\nFIN instrumentación {}"
                             + "\n^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"
                             + "\n****************************************************************************",
-                            className
+                            new Object[]{className}
                     );
                     return cw.toByteArray();
                 }
@@ -283,18 +291,18 @@ public class TransparentDirtyDetectorInstrumentator
                 String outerClass = className.substring(0, className.lastIndexOf("$")).replace("/", ".");
 
                 try {
-                    LOGGER.log(Level.FINER, "analizando innerClass: " + className);
+                    LOGGER.log(Level.DEBUG, "analizando innerClass: " + className);
                     ClassReader ocr = new ClassReader(outerClass);
                     ClassWriter ocw = new ClassWriter(ocr, 0);
                     InstrumentableClassDetector oicd = new InstrumentableClassDetector(ocw).setInstrumentableClassFilter(instrumentableClassDetector);
                     ocr.accept(oicd, 0);
                     if (oicd.isInstrumentable() && !oicd.isInstrumented()) {
-                        LOGGER.log(Level.FINER, "Se encontró la anotattion Entity en la clase contenedora. Instrumentar la innerClass");
+                        LOGGER.log(Level.DEBUG, "Se encontró la anotattion Entity en la clase contenedora. Instrumentar la innerClass");
 
                         // FIXME: esto debería sacarse a una clase aparte o a un método, para que quede mas prolijo. 
-                        LOGGER.log(Level.FINER, ""
+                        LOGGER.log(Level.DEBUG, ""
                                 + "\n****************************************************************************"
-                                + "\nRedefiniendo innerClass on-the-fly {0}..."
+                                + "\nRedefiniendo innerClass on-the-fly {}..."
                                 + "\n****************************************************************************",
                                 className);
                         ClassReader crRedefine = new ClassReader(classfileBuffer);
@@ -303,7 +311,7 @@ public class TransparentDirtyDetectorInstrumentator
                             // Asegurar que se usa el mismo CL para cargar las clases.
                             @Override
                             protected String getCommonSuperClass(String type1, String type2) {
-                                LOGGER.log(Level.FINER, "type1: " + type1 + "   - type2: " + type2);
+                                LOGGER.log(Level.DEBUG, "type1: " + type1 + "   - type2: " + type2);
                                 Class<?> c, d;
                                 try {
                                     c = Class.forName(type1.replace('/', '.'), false, loader);
@@ -333,16 +341,16 @@ public class TransparentDirtyDetectorInstrumentator
                         try {
                             crRedefine.accept(taa, ClassReader.EXPAND_FRAMES);
 
-                            if ((LOGGER.getLevel() == Level.FINER)||(LOGGER.getLevel() == Level.FINEST)) {
+                            if (this.dumpDirectoryPath!=null || (LOGGER.getLevel() == Level.DEBUG)||(LOGGER.getLevel() == Level.TRACE)) {
                                 writeToFile(className, cw.toByteArray());
                             }
-                            LOGGER.log(Level.FINER, "FIN instrumentación {0}"
+                            LOGGER.log(Level.DEBUG, "FIN instrumentación {}"
                                     + "\n^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"
                                     + "\n****************************************************************************",
                                     className
                             );
                         } catch (Exception e) {
-                            LOGGER.log(Level.SEVERE, "ERROR <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+                            LOGGER.log(Level.ERROR, "ERROR <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
                             e.printStackTrace();
                         }
                         // descomentar estas líneas junto con la de arriba para realizar un checkeo de la clase.
@@ -359,7 +367,7 @@ public class TransparentDirtyDetectorInstrumentator
 
                     }
                 } catch (IOException ex) {
-                    LOGGER.log(Level.FINER, "No se ha podido analizar la clase inner "+className);
+                    LOGGER.log(Level.DEBUG, "No se ha podido analizar la clase inner "+className);
                 }
             }
         }
@@ -373,20 +381,20 @@ public class TransparentDirtyDetectorInstrumentator
      * @param myByteArray datos de la clase.
      */
     private void writeToFile(String className, byte[] myByteArray) {
-        LOGGER.log(Level.FINER, "Escribiendo archivo a disco en /tmp/asm");
+        LOGGER.log(Level.DEBUG, "Escribiendo archivo a disco en /tmp/asm");
         try {
-            File theDir = new File("/tmp/asm");
+            String outPath = this.dumpDirectoryPath!=null ? this.dumpDirectoryPath:"/tmp/asm";
+            File theDir = new File(outPath);
             if (!theDir.exists()) {
                 theDir.mkdir();
             }
 
-            FileOutputStream fos = new FileOutputStream("/tmp/asm/" + className.substring(className.lastIndexOf("/")) + ".class");
+            FileOutputStream fos = new FileOutputStream(outPath + className.substring(className.lastIndexOf("/")) + ".class");
             fos.write(myByteArray);
             fos.close();
 
         } catch (IOException ex) {
-            Logger.getLogger(TransparentDirtyDetectorInstrumentator.class
-                    .getName()).log(Level.SEVERE, null, ex);
+            LOGGER.log(Level.ERROR, ex);
         }
     }
 

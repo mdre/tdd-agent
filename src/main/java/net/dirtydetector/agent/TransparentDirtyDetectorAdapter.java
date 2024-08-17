@@ -3,8 +3,11 @@ package net.dirtydetector.agent;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.config.Configurator;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
@@ -16,12 +19,11 @@ import org.objectweb.asm.Opcodes;
  */
 public class TransparentDirtyDetectorAdapter extends ClassVisitor implements ITransparentDirtyDetectorDef, IJavaCollections {
 
-    private final static Logger LOGGER = Logger.getLogger(TransparentDirtyDetectorAdapter.class.getName());
+    private final static Logger LOGGER = LogManager.getLogger(TransparentDirtyDetectorAdapter.class.getName());
     static {
-        if (LOGGER.getLevel() == null) {
-            LOGGER.setLevel(LogginProperties.TransparentDirtyDetectorAdapter);
-        }
+        Configurator.setLevel(TransparentDirtyDetectorAdapter.class.getName(), LogginProperties.TransparentDirtyDetectorAdapter);
     }
+    
     
     private boolean isFieldPresent = false;
     private List<String> ignoredFields = new ArrayList();
@@ -40,11 +42,11 @@ public class TransparentDirtyDetectorAdapter extends ClassVisitor implements ITr
             String superName, String[] interfaces) {
         String[] addInterfaces = Arrays.copyOf(interfaces, interfaces.length + 1); //create new array from old array and allocate one more element
         addInterfaces[addInterfaces.length - 1] = ITransparentDirtyDetector.class.getName().replace(".", "/");
-        LOGGER.log(Level.FINER, "visitando clase: {0} super: {1} y agregando la interface.",
+        LOGGER.log(Level.DEBUG, "visitando clase: {} super: {} y agregando la interface.",
                 new Object[]{name, superName});
         // se elimina la propiedad FINAL de todas las clases visitadas para que 
         // CGLIB pueda extenderlas.
-        LOGGER.log(Level.FINEST, ((access & Opcodes.ACC_FINAL) > 0)?"Clase FINAL detectada":"");
+        LOGGER.log(Level.TRACE, ((access & Opcodes.ACC_FINAL) > 0)?"Clase FINAL detectada":"");
         
         className = name;
         cv.visit(version, access & (~Opcodes.ACC_FINAL) , name, signature, superName, addInterfaces);
@@ -52,14 +54,14 @@ public class TransparentDirtyDetectorAdapter extends ClassVisitor implements ITr
 
     @Override
     public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
-        LOGGER.log(Level.FINEST, "field: "+name+" : "+desc);
+        LOGGER.log(Level.TRACE, "field: "+name+" : "+desc);
         
         if (name.equals(DIRTYMARK)) {
             isFieldPresent = true;
-            LOGGER.log(Level.FINER, "El campo ya existe!!!! WARNING!!! Esto no deberia ocurrir!!! ************************");
+            LOGGER.log(Level.DEBUG, "El campo ya existe!!!! WARNING!!! Esto no deberia ocurrir!!! ************************");
         }
 //        if (getJavaCollections().contains(desc) && !ignoredFields.contains(name)) {
-//            LOGGER.log(Level.FINEST, "Colección detectada: "+name+" : "+desc);
+//            LOGGER.log(Level.TRACE, "Colección detectada: "+name+" : "+desc);
 //            collectionsFields.add(name);
 //        }
         return cv.visitField(access, name, desc, signature, value);
@@ -68,23 +70,23 @@ public class TransparentDirtyDetectorAdapter extends ClassVisitor implements ITr
     @Override
     public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
         MethodVisitor mv;
-        LOGGER.log(Level.FINEST, "visitando método: {0} desc: {1}", new Object[]{name, desc});
+        LOGGER.log(Level.TRACE, "visitando método: {} desc: {}", new Object[]{name, desc});
         //se quitan todos los FINAL de los métodos
         mv = cv.visitMethod(access & (~Opcodes.ACC_FINAL), name, desc, signature, exceptions);
         if ((mv != null) && !name.equals("<clinit>")) {
             if (name.equals("<init>")) {
                 // si es un constructor inicializar el Set
-                LOGGER.log(Level.FINEST, "Constructor detectado!");
+                LOGGER.log(Level.TRACE, "Constructor detectado!");
                 mv = new WriteConstructorAccessActivatorAdapter(className,mv, ignoredFields);
             } else {
-                LOGGER.log(Level.FINER, ">>>>>>>>>>> Instrumentando método: {0}", name);
-                LOGGER.log(Level.FINER, ">>>>>>>>>>> owner: {0} - access: {1} - name: {2} - desc: {3}",
+                LOGGER.log(Level.DEBUG, ">>>>>>>>>>> Instrumentando método: {}", name);
+                LOGGER.log(Level.DEBUG, ">>>>>>>>>>> owner: {} - access: {} - name: {} - desc: {}",
                                                 new Object[]{ className,access,name,desc});
                 mv = new WriteAccessActivatorAdapter(Opcodes.ASM9, className, access, name, desc, mv, ignoredFields, collectionsFields);
             }
-            LOGGER.log(Level.FINEST, "fin instrumentación ---------------------------------------------------");
+            LOGGER.log(Level.TRACE, "fin instrumentación ---------------------------------------------------");
         } else {
-            LOGGER.log(Level.FINEST, "mv = NULL !!!! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+            LOGGER.log(Level.TRACE, "mv = NULL !!!! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
         }
         return mv;
     }
@@ -92,17 +94,17 @@ public class TransparentDirtyDetectorAdapter extends ClassVisitor implements ITr
     @Override
     public void visitEnd() {
         if (!isFieldPresent) {
-            LOGGER.log(Level.FINER, "Agregando el campo");
+            LOGGER.log(Level.DEBUG, "Agregando el campo");
             FieldVisitor fv = cv.visitField(Opcodes.ACC_PUBLIC, DIRTYMARK,
                     org.objectweb.asm.Type.BOOLEAN_TYPE.getDescriptor(), null, null);
             if (fv != null) {
                 fv.visitEnd();
-                LOGGER.log(Level.FINER, "DIRTYMARK fv.visitEnd..");
+                LOGGER.log(Level.DEBUG, "DIRTYMARK fv.visitEnd..");
             }
             fv = cv.visitField(Opcodes.ACC_PUBLIC, MODIFIEDFIELDS, "Ljava/util/Set;", null, null);
             if (fv != null) {
                 fv.visitEnd();
-                LOGGER.log(Level.FINER, "MODIFIEDFIELDS fv.visitEnd..");
+                LOGGER.log(Level.DEBUG, "MODIFIEDFIELDS fv.visitEnd..");
             }
         }
         cv.visitEnd();

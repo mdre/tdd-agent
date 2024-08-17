@@ -44,7 +44,9 @@ public class TransparentDirtyDetectorTest {
             TransparentDirtyDetectorAgent.initialize();
             TransparentDirtyDetectorAgent.get()
                     .addDetector("net.odbogm.annotations.Entity")
-                    .addIgnore("org.junit") ;
+                    .addIgnore("org.junit") 
+                    // .setClassLevelLog(TransparentDirtyDetectorInstrumentator.class, Level.FINEST)
+                    ;
             
         } catch (TDDAgentInitializationException ex) {
             Logger.getLogger(TransparentDirtyDetectorTest.class.getName()).log(Level.SEVERE, null, ex);

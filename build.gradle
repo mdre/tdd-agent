@@ -28,6 +28,9 @@ dependencies {
     implementation 'org.ow2.asm:asm-util:9.4'
     implementation 'org.ow2.asm:asm-commons:9.4'
     testImplementation 'junit:junit:[4,)'
+    implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.23.1'
+    implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.23.1'
+    // implementation group: 'org.apache.logging.log4j', name: 'log4j-slf4j-impl', version: '2.23.1'
 }
 
 
@@ -127,11 +130,20 @@ build.doLast {
 //    }
 //}
 
+//task to find the path of the ogm agent automatically:
+task findAgentPath {
+    
+    
+    project.ext.setProperty('tddAgentPath', jar.archivePath)
+    println "Path completo al JAR generado: $tddAgentPath"
+}
 
 
 
 test {
+    dependsOn findAgentPath
     jvmArgs '-Djdk.attach.allowAttachSelf=true'
+    jvmArgs += "-javaagent:${tddAgentPath}"
     testLogging {
         // Make sure output from
         // standard out or error is shown

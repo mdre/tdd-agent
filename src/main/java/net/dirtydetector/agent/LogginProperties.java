@@ -1,6 +1,6 @@
 package net.dirtydetector.agent;
 
-import java.util.logging.Level;
+import org.apache.logging.log4j.Level;
 
 /**
  * Configuración de los loggers de cada clase.
@@ -8,12 +8,12 @@ import java.util.logging.Level;
  */
 public class LogginProperties {
 
-    public static Level TransparentDirtyDetectorAdapter            = Level.INFO;
-    public static Level TransparentDirtyDetectorInstrumentator     = Level.INFO;
-    public static Level TransparentDirtyDetectorAgent              = Level.INFO;
-    public static Level InstrumentableClassDetector                = Level.INFO;
-    public static Level WriteAccessActivatorAdapter                = Level.INFO;
-    public static Level WriteAccessActivatorInnerClassAdapter      = Level.INFO;
-    public static Level WriteConstructorAccessActivatorAdapter     = Level.INFO;
+    public static final Level TransparentDirtyDetectorAdapter            = Level.INFO;
+    public static final Level TransparentDirtyDetectorInstrumentator     = Level.INFO;
+    public static final Level TransparentDirtyDetectorAgent              = Level.INFO;
+    public static final Level InstrumentableClassDetector                = Level.INFO;
+    public static final Level WriteAccessActivatorAdapter                = Level.INFO;
+    public static final Level WriteAccessActivatorInnerClassAdapter      = Level.INFO;
+    public static final Level WriteConstructorAccessActivatorAdapter     = Level.INFO;
     
 }

@@ -8,8 +8,11 @@ package net.dirtydetector.agent;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.config.Configurator;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
@@ -23,11 +26,9 @@ import org.objectweb.asm.Type;
  */
 public class InstrumentableClassDetector extends ClassVisitor implements IJavaCollections {
 
-    private final static Logger LOGGER = Logger.getLogger(InstrumentableClassDetector.class.getName());
+    private final static Logger LOGGER = LogManager.getLogger(InstrumentableClassDetector.class.getName());
     static {
-        if (LOGGER.getLevel() == null) {
-            LOGGER.setLevel(LogginProperties.InstrumentableClassDetector);
-        }
+        Configurator.setLevel(InstrumentableClassDetector.class.getName(), LogginProperties.InstrumentableClassDetector);
     }
     
     private boolean isInstrumentable = false;
@@ -63,7 +64,7 @@ public class InstrumentableClassDetector extends ClassVisitor implements IJavaCo
         for (String aInterface : interfaces) {
             if (aInterface.equals(ddi)) {
                 // si tiene la interface implementada marcarla como instrumentada
-                LOGGER.log(Level.FINER, "La clase "+name+" ya ha sido instrumentada. No hacer nada.");
+                LOGGER.log(Level.DEBUG, "La clase "+name+" ya ha sido instrumentada. No hacer nada.");
                 this.isInstrumented = true;
             }
         }
@@ -72,18 +73,18 @@ public class InstrumentableClassDetector extends ClassVisitor implements IJavaCo
 
     @Override
     public synchronized  AnnotationVisitor visitAnnotation(String ann, boolean bln) {
-        LOGGER.log(Level.FINEST, "//=====================================================");
-        LOGGER.log(Level.FINEST, "Annotations: ");
-        LOGGER.log(Level.FINEST, "//=====================================================");
-        LOGGER.log(Level.FINEST, "Annotation: >"+ann+"<");
-        LOGGER.log(Level.FINEST, "detectors: >"+Arrays.toString(instrumentableClassFilter.toArray())+"<");
+        LOGGER.log(Level.TRACE, "//=====================================================");
+        LOGGER.log(Level.TRACE, "Annotations: ");
+        LOGGER.log(Level.TRACE, "//=====================================================");
+        LOGGER.log(Level.TRACE, "Annotation: >"+ann+"<");
+        LOGGER.log(Level.TRACE, "detectors: >"+Arrays.toString(instrumentableClassFilter.toArray())+"<");
         if (instrumentableClassFilter.contains(ann) ) {  //ann.startsWith("Lnet/odbogm/annotations/Entity")
-            LOGGER.log(Level.FINER, clazzName + ": Annotation: >"+ann+"<");
-            LOGGER.log(Level.FINER, ">>>>>>>>>>> marcar como instrumentable");
+            LOGGER.log(Level.DEBUG, clazzName + ": Annotation: >"+ann+"<");
+            LOGGER.log(Level.DEBUG, ">>>>>>>>>>> marcar como instrumentable");
             this.isInstrumentable = true;
         }
         
-        LOGGER.log(Level.FINEST, "//=====================================================");
+        LOGGER.log(Level.TRACE, "//=====================================================");
         return super.visitAnnotation(ann, bln); 
     }
 
@@ -97,7 +98,7 @@ public class InstrumentableClassDetector extends ClassVisitor implements IJavaCo
             // determinar si se debe ignorar
             fv = new FieldAnnotationVisitor(fv, name);
             if (getJavaCollections().contains(descriptor) && !ignoredFields.contains(name)) {
-                LOGGER.log(Level.FINEST, "Colección detectada: "+name+" : "+descriptor);
+                LOGGER.log(Level.TRACE, "Colección detectada: "+name+" : "+descriptor);
                 collectionsFields.add(name);
             }
         }
@@ -107,7 +108,7 @@ public class InstrumentableClassDetector extends ClassVisitor implements IJavaCo
     @Override
     public synchronized MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
         MethodVisitor mv;
-        LOGGER.log(Level.FINEST, "visitando método: " + name + " desc: " + desc + " signature: "+signature);
+        LOGGER.log(Level.TRACE, "visitando método: " + name + " desc: " + desc + " signature: "+signature);
         mv = cv.visitMethod(access, name, desc, signature, exceptions);
         if ((mv != null) && name.equals("<init>") && desc.equals("()V") ) {
             hasDefaultContructor = true;

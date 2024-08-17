@@ -2,8 +2,11 @@ package net.dirtydetector.agent;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.config.Configurator;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -16,11 +19,10 @@ import org.objectweb.asm.Opcodes;
  */
 public class TransparentDirtyDetectorInnerClassAdapter extends ClassVisitor implements ITransparentDirtyDetectorDef, IJavaCollections {
 
-    private final static Logger LOGGER = Logger.getLogger(TransparentDirtyDetectorInnerClassAdapter.class.getName());
+    private final static Logger LOGGER = LogManager.getLogger(TransparentDirtyDetectorInnerClassAdapter.class.getName());
     static {
-        if (LOGGER.getLevel() == null) {
-            LOGGER.setLevel(LogginProperties.TransparentDirtyDetectorAdapter);
-        }
+        Configurator.setLevel(TransparentDirtyDetectorInnerClassAdapter.class.getName(),
+                              LogginProperties.TransparentDirtyDetectorAdapter);
     }
     
     private boolean isFieldPresent = false;
@@ -39,15 +41,15 @@ public class TransparentDirtyDetectorInnerClassAdapter extends ClassVisitor impl
     @Override
     public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
         MethodVisitor mv;
-        LOGGER.log(Level.FINER, "visitando método: {0}, desc: {1}. signature: {1}", new Object[]{name, desc, signature});
+        LOGGER.log(Level.DEBUG, "visitando método: {}, desc: {}. signature: {}", new Object[]{name, desc, signature});
         //se quitan todos los FINAL de los métodos
         mv = cv.visitMethod(access & (~Opcodes.ACC_FINAL), name, desc, signature, exceptions);
         if ((mv != null) && !name.equals("<init>") && !name.equals("<clinit>")) {
-            LOGGER.log(Level.FINER, ">>>>>>>>>>> Instrumentando método: {0}", name);
+            LOGGER.log(Level.DEBUG, ">>>>>>>>>>> Instrumentando método: {}", name);
             mv = new WriteAccessActivatorInnerClassAdapter(Opcodes.ASM9, className, access, name, desc, mv, ignoredFields, collectionsFields);
-            LOGGER.log(Level.FINEST, "fin instrumentación ---------------------------------------------------");
+            LOGGER.log(Level.TRACE, "fin instrumentación ---------------------------------------------------");
         } else {
-            LOGGER.log(Level.FINEST, "mv = NULL !!!! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+            LOGGER.log(Level.TRACE, "mv = NULL !!!! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
         }
         return mv;
     }
