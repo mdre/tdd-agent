@@ -3,9 +3,9 @@ plugins {
     id 'maven-publish'
     id 'signing'
     //id 'net.researchgate.release' version '2.6.0'
-    id 'nu.studer.credentials' version '2.1'
+    id 'nu.studer.credentials' version '3.0'
     //id 'io.codearte.nexus-staging' version '0.21.0'
-     id("io.github.gradle-nexus.publish-plugin") version "1.1.0"
+     id("io.github.gradle-nexus.publish-plugin") version "2.0.0"
 }
 
 // ejecutar: gradle idea 
@@ -18,15 +18,15 @@ idea{
 }
 
 compileJava {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
 }
 
 
 dependencies {
-    implementation 'org.ow2.asm:asm:9.4'
-    implementation 'org.ow2.asm:asm-util:9.4'
-    implementation 'org.ow2.asm:asm-commons:9.4'
+    implementation 'org.ow2.asm:asm:9.5'
+    implementation 'org.ow2.asm:asm-util:9.5'
+    implementation 'org.ow2.asm:asm-commons:9.5'
     testImplementation 'junit:junit:[4,)'
     implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.23.1'
     implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.23.1'
@@ -76,9 +76,8 @@ println "***************************************************************"
 //gradle addCredentials -PcredentialsKey=nexusPassword -PcredentialsValue=YYYYY -PcredentialsPassphrase=zzzzzzzz
 //def nexusUser = credentials.nexusUser
 //def nexusPassword = credentials.nexusPassword
-def sonatypeUsername = credentials.sonatypeUser
-def sonatypePassword = credentials.sonatypePassword
-
+def sonatypeUsername = credentials.forKey("sonatypeUser")
+def sonatypePassword = credentials.forKey("sonatypePassword")
 
 // incrementar automáticamente el buildNumber
 task autoBuildNumber {
@@ -143,7 +142,7 @@ task findAgentPath {
 test {
     dependsOn findAgentPath
     jvmArgs '-Djdk.attach.allowAttachSelf=true'
-    jvmArgs += "-javaagent:${tddAgentPath}"
+    jvmArgs += "-javaagent:${tddAgentPath}=net.odbogm.annotations.Entity"
     testLogging {
         // Make sure output from
         // standard out or error is shown

@@ -73,11 +73,11 @@ public class InstrumentableClassDetector extends ClassVisitor implements IJavaCo
 
     @Override
     public synchronized  AnnotationVisitor visitAnnotation(String ann, boolean bln) {
-        LOGGER.log(Level.TRACE, "//=====================================================");
-        LOGGER.log(Level.TRACE, "Annotations: ");
-        LOGGER.log(Level.TRACE, "//=====================================================");
-        LOGGER.log(Level.TRACE, "Annotation: >"+ann+"<");
-        LOGGER.log(Level.TRACE, "detectors: >"+Arrays.toString(instrumentableClassFilter.toArray())+"<");
+        LOGGER.log(Level.DEBUG, "//=====================================================");
+        LOGGER.log(Level.DEBUG, "Annotations: ");
+        LOGGER.log(Level.DEBUG, "//=====================================================");
+        LOGGER.log(Level.DEBUG, "Annotation: >"+ann+"<");
+        LOGGER.log(Level.DEBUG, "detectors: >"+Arrays.toString(instrumentableClassFilter.toArray())+"<");
         if (instrumentableClassFilter.contains(ann) ) {  //ann.startsWith("Lnet/odbogm/annotations/Entity")
             LOGGER.log(Level.DEBUG, clazzName + ": Annotation: >"+ann+"<");
             LOGGER.log(Level.DEBUG, ">>>>>>>>>>> marcar como instrumentable");

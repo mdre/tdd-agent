@@ -36,7 +36,7 @@ public class TransparentDirtyDetectorTest {
     }
     
     @Before
-    public void setUp() {
+    public void setUp() throws InterruptedException {
         try {
             System.out.println("****************************");
             System.out.println("Inicializando los tests.....");
@@ -47,7 +47,7 @@ public class TransparentDirtyDetectorTest {
                     .addIgnore("org.junit") 
                     // .setClassLevelLog(TransparentDirtyDetectorInstrumentator.class, Level.FINEST)
                     ;
-            
+            Thread.sleep(1000);
         } catch (TDDAgentInitializationException ex) {
             Logger.getLogger(TransparentDirtyDetectorTest.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -76,6 +76,7 @@ public class TransparentDirtyDetectorTest {
         System.out.println("");
         System.out.println("testObjects() ---------------------------------------------------");
         System.out.println("");
+        System.out.println("Detectors: "+TransparentDirtyDetectorAgent.get().getDetectors());
         
         ExAbsClass eac = new ExAbsClass();
         assertTrue(eac instanceof ITransparentDirtyDetector);

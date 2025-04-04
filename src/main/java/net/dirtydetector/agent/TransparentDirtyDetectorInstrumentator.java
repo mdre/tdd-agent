@@ -42,7 +42,9 @@ public class TransparentDirtyDetectorInstrumentator
                                                                "com/sun/",
                                                                "org/gradle/", 
                                                                "worker/org/gradle/",
-                                                               "org/slf4j"
+                                                               "org/slf4j",
+                                                               "org/junit",
+                                                               "org/apache"
                                                                )
                                                     );
     

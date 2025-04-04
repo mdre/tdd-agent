@@ -66,7 +66,7 @@ public class WriteAccessActivatorInnerClassAdapter extends AnalyzerAdapter
      */
     @Override
     public synchronized void visitInsn(int opcode) {
-        LOGGER.log(Level.DEBUG, "Activate: {0}", this.activate);
+        LOGGER.log(Level.DEBUG, "Activate: {}", this.activate);
         if ((this.activate) && ((opcode >= Opcodes.IRETURN && opcode <= Opcodes.RETURN) || opcode == Opcodes.ATHROW)) {
             // si hay colleciones agregadas, incluirlas como dirty antes de retornar. 
             if (lastCollectionModifiedFields.size() > 0) {
@@ -78,7 +78,7 @@ public class WriteAccessActivatorInnerClassAdapter extends AnalyzerAdapter
             mv.visitVarInsn(Opcodes.ALOAD, 0);
             //getfield test/OuterTarget$1.this$0:test.OuterTarget
 
-            LOGGER.log(Level.DEBUG, "className: {0}, outerClass: {1}", new String[]{className, outerClass});
+            LOGGER.log(Level.DEBUG, "className: {}, outerClass: {}", new Object[]{className, outerClass});
             mv.visitFieldInsn(Opcodes.GETFIELD, this.className, "this$0", "L" + this.outerClass + ";");
 
             //mv.visitInsn(Opcodes.ICONST_1);
@@ -91,7 +91,7 @@ public class WriteAccessActivatorInnerClassAdapter extends AnalyzerAdapter
 
     @Override
     public synchronized void visitFieldInsn(int opcode, String owner, String name, String desc) {
-        LOGGER.log(Level.DEBUG, "owner: {0} - name: {1} - desc: {2} - opcode: {3}", new Object[]{owner, name, desc, opcode});
+        LOGGER.log(Level.DEBUG, "owner: {} - name: {} - desc: {} - opcode: {}", new Object[]{owner, name, desc, opcode});
         //  owner: test/Outer$1 - name: this$0 - desc: Ltest/Outer;
 
         mv.visitFieldInsn(opcode, owner, name, desc);
@@ -110,7 +110,7 @@ public class WriteAccessActivatorInnerClassAdapter extends AnalyzerAdapter
 
     @Override
     public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
-        LOGGER.log(Level.TRACE, "opcode: {0} - owner: {1} - name: {2} - desc: {3} - isInterface: {4}", new Object[]{Printer.OPCODES[opcode], owner, name, descriptor, isInterface});
+        LOGGER.log(Level.TRACE, "opcode: {} - owner: {} - name: {} - desc: {} - isInterface: {}", new Object[]{Printer.OPCODES[opcode], owner, name, descriptor, isInterface});
         printStack();
         // si el método coincide con una de las clases y métodos a monitorear, revisar el stack para verificar
         // que el campo sea un field.
