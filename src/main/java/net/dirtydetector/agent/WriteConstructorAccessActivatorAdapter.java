@@ -43,7 +43,7 @@ public class WriteConstructorAccessActivatorAdapter extends MethodVisitor implem
         LOGGER.log(Level.TRACE, "visit MethodInsn!");
         if (this.initialize) {
             LOGGER.log(Level.TRACE, "insertar la inicialización del hashset...");
-            LOGGER.log(Level.TRACE, "className: {1}",new Object[]{className});
+            LOGGER.log(Level.TRACE, "className: {}",new Object[]{className});
 
             // Crear una nueva instancia de HashSet
             mv.visitVarInsn(Opcodes.ALOAD, 0);

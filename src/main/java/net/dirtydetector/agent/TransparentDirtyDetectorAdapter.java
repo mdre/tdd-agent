@@ -54,7 +54,7 @@ public class TransparentDirtyDetectorAdapter extends ClassVisitor implements ITr
 
     @Override
     public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
-        LOGGER.log(Level.TRACE, "field: "+name+" : "+desc);
+        LOGGER.log(Level.TRACE, "field: "+name+" : "+desc+" : "+signature);
         
         if (name.equals(DIRTYMARK)) {
             isFieldPresent = true;

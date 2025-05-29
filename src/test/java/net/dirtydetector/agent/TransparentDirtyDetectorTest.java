@@ -409,4 +409,37 @@ public class TransparentDirtyDetectorTest {
         ((ITransparentDirtyDetector)ct).___tdd___clearDirty();
         
     }
+    
+//    @Test
+//    public void enumTest() {
+//        Enums v = new Enums();
+//        v.enums.addAll(List.of(EnumTest.UNO, EnumTest.DOS, EnumTest.OTRO_MAS));
+//        System.out.println("Modificados: "+ ((ITransparentDirtyDetector)v).___tdd___getModifiedFields());
+//        assertTrue(((ITransparentDirtyDetector)v).___tdd___isDirty());
+//        
+//        ((ITransparentDirtyDetector)v).___tdd___clearDirty();
+//        
+//        v.enums.add(EnumTest.TRES);
+//        assertEquals(3, v.enums.size());
+//        assertTrue(((ITransparentDirtyDetector)v).___tdd___isDirty());
+//        
+//        assertEquals(3, v.enums.size());
+//        assertTrue(v.enums.contains(EnumTest.UNO));
+//        assertTrue(v.enums.contains(EnumTest.DOS));
+//        assertTrue(v.enums.contains(EnumTest.OTRO_MAS));
+//        
+//        System.out.println("\n\n\n\n Test remove:");
+//        ((ITransparentDirtyDetector)v).___tdd___clearDirty();
+//        
+//        v.enums.remove(EnumTest.OTRO_MAS);
+//        assertEquals(2, v.enums.size());
+//        assertTrue(((ITransparentDirtyDetector)v).___tdd___isDirty());
+//        
+//        System.out.println("dirty: "+((ITransparentDirtyDetector)v).___tdd___isDirty());
+//        System.out.println("modified fields: "+ String.join(", ",((ITransparentDirtyDetector)v).___tdd___getModifiedFields()));
+//        
+//        ((ITransparentDirtyDetector)v).___tdd___clearDirty();
+//        v.enums.clear();
+//        assertTrue(v.enums.isEmpty());
+//    }
 }
