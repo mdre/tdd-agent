@@ -11,21 +11,19 @@ import net.odbogm.annotations.Entity;
  * @author mdre
  */
 @Entity
-public class Foo {
-    private String s;
+public class FooEx extends Foo {
 
-    public Foo(String s) {
-        this.s = s;
-    }
+    private String s2;
 
-    public String getS() {
-        return s;
-    }
-
-    public Foo setS(String s) {
-        this.s = s;
-        return this;
+    public FooEx(String s) {
+        super(s);
     }
     
-    
+    public String getS2() {
+        return s2;
+    }
+
+    public void setS2(String s2) {
+        this.s2 = s2;
+    }
 }

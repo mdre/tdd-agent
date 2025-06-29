@@ -14,6 +14,9 @@ import test.ColClass;
 import test.CollectionsTest;
 import test.ExAbsClass;
 import test.FinalClass;
+import test.Foo;
+import test.FooEx;
+import test.FooExEx;
 import test.Outer;
 
 /**
@@ -45,6 +48,7 @@ public class TransparentDirtyDetectorTest {
             TransparentDirtyDetectorAgent.get()
                     .addDetector("net.odbogm.annotations.Entity")
                     .addIgnore("org.junit") 
+                    .enableDumpDebugDirectory("/tmp/1/asm")
                     // .setClassLevelLog(TransparentDirtyDetectorInstrumentator.class, Level.FINEST)
                     ;
             Thread.sleep(1000);
@@ -409,6 +413,62 @@ public class TransparentDirtyDetectorTest {
         ((ITransparentDirtyDetector)ct).___tdd___clearDirty();
         
     }
+    
+    @Test
+    public void subClassTest() {
+        Foo f = new Foo("s1");
+        FooEx fx = new FooEx("s2");
+        FooExEx fxx = new FooExEx("s3");
+        System.out.println("Level 1");
+        System.out.println("fx isDirty: "+ ((ITransparentDirtyDetector)fx).___tdd___isDirty());
+        assertFalse(((ITransparentDirtyDetector)fx).___tdd___isDirty());
+        System.out.println("\n\n\nModificar un campo");
+        fx.setS2("s2");
+        assertTrue(((ITransparentDirtyDetector)fx).___tdd___isDirty());
+        System.out.println("isDirty: "+ ((ITransparentDirtyDetector)fx).___tdd___isDirty());
+        System.out.println("Modificados: "+ ((ITransparentDirtyDetector)fx).___tdd___getModifiedFields());
+        assertTrue(((ITransparentDirtyDetector)fx).___tdd___isDirty());
+        assertTrue(((ITransparentDirtyDetector)fx).___tdd___getModifiedFields().contains("s2"));
+        
+        // modificar un campo del objeto superior
+        System.out.println("\nLimpiar las marcas...");
+        ((ITransparentDirtyDetector)fx).___tdd___clearDirty();
+        System.out.println("isDirty: "+ ((ITransparentDirtyDetector)fx).___tdd___isDirty());
+        System.out.println("Modificados: "+ ((ITransparentDirtyDetector)fx).___tdd___getModifiedFields());
+        assertFalse(((ITransparentDirtyDetector)fx).___tdd___isDirty());
+        assertEquals(0, ((ITransparentDirtyDetector)fx).___tdd___getModifiedFields().size());
+        
+        System.out.println("modificar en el objeto superior...");
+        fx.setS("fx s");
+        System.out.println("isDirty: "+ ((ITransparentDirtyDetector)fx).___tdd___isDirty());
+        System.out.println("Modificados: "+ ((ITransparentDirtyDetector)fx).___tdd___getModifiedFields());
+        assertTrue(((ITransparentDirtyDetector)fx).___tdd___isDirty());
+        assertTrue(((ITransparentDirtyDetector)fx).___tdd___getModifiedFields().contains("s"));
+        
+        fx.setS2("fx s2");
+        assertTrue(((ITransparentDirtyDetector)fx).___tdd___getModifiedFields().contains("s2"));
+        
+        System.out.println("Pruebas sobre Ex Ex...");
+        System.out.println("\nLimpiar las marcas...");
+        ((ITransparentDirtyDetector)fxx).___tdd___clearDirty();
+        System.out.println("isDirty: "+ ((ITransparentDirtyDetector)fxx).___tdd___isDirty());
+        System.out.println("Modificados: "+ ((ITransparentDirtyDetector)fxx).___tdd___getModifiedFields());
+        assertFalse(((ITransparentDirtyDetector)fxx).___tdd___isDirty());
+        assertEquals(0, ((ITransparentDirtyDetector)fxx).___tdd___getModifiedFields().size());
+
+        fxx.setS("fxx s");
+        System.out.println("Modificado s: "+ ((ITransparentDirtyDetector)fxx).___tdd___getModifiedFields());
+        fxx.setS2("fxx s2");
+        System.out.println("Modificado s2: "+ ((ITransparentDirtyDetector)fxx).___tdd___getModifiedFields());
+        fxx.setS3("fxx s3");
+        System.out.println("Modificado s3: "+ ((ITransparentDirtyDetector)fxx).___tdd___getModifiedFields());
+        assertTrue(((ITransparentDirtyDetector)fxx).___tdd___isDirty());
+        assertTrue(((ITransparentDirtyDetector)fxx).___tdd___getModifiedFields().contains("s"));
+        assertTrue(((ITransparentDirtyDetector)fxx).___tdd___getModifiedFields().contains("s2"));
+        assertTrue(((ITransparentDirtyDetector)fxx).___tdd___getModifiedFields().contains("s3"));
+        
+    }
+    
     
 //    @Test
 //    public void enumTest() {

@@ -85,7 +85,7 @@ public class OuterTarget implements ITransparentDirtyDetector {
         
         public void setOuterCollection(String text) {
             lista.add("lista");
-            ___tdd___modifiedFields.add("lista");
+            ___tdd___addModifiedField("lista");
             ___tdd___setDirty();
         }
         
@@ -174,5 +174,8 @@ public class OuterTarget implements ITransparentDirtyDetector {
         return this.___tdd___modifiedFields;
     }
     
-    
+    @Override
+    public void ___tdd___addModifiedField(String f) {
+        this.___tdd___modifiedFields.add(f);
+    }
 }

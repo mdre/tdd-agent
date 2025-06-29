@@ -11,4 +11,5 @@ public interface ITransparentDirtyDetector {
     public void ___tdd___setDirty();
     public void ___tdd___clearDirty();
     public Set<String> ___tdd___getModifiedFields();
+    public void ___tdd___addModifiedField(String f);
 }

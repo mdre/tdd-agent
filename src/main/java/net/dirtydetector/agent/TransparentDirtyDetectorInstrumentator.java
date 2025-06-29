@@ -16,6 +16,7 @@ import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.config.Configurator;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.util.CheckClassAdapter;
@@ -253,13 +254,44 @@ public class TransparentDirtyDetectorInstrumentator
                     mv.visitMaxs(1, 1);
                     mv.visitEnd();
                     
+                    LOGGER.log(Level.DEBUG, "insertando el método ___tdd___addModifiedFields(String f) ...");
+                    try {
+                        mv = cw.visitMethod(Opcodes.ACC_PUBLIC, ADDMODIFIEDFIELD, "(Ljava/lang/String;)V", null, null);
+                        mv.visitCode();
+                        Label lblStart = new Label();
+                        Label lblEnd = new Label();
+                        mv.visitLabel(lblStart);
+    //                    mv.visitLineNumber(61, label0);
+                        mv.visitVarInsn(Opcodes.ALOAD, 0);
+                        mv.visitFieldInsn(Opcodes.GETFIELD, className, MODIFIEDFIELDS, "Ljava/util/Set;");
+                        mv.visitVarInsn(Opcodes.ALOAD, 1);
+                        mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/util/Set", "add", "(Ljava/lang/Object;)Z", true);
+                        mv.visitInsn(Opcodes.POP);
+    //                    Label label1 = new Label();
+    //                    mv.visitLabel(label1);
+    //                    mv.visitLineNumber(62, label1);
+                        mv.visitInsn(Opcodes.RETURN);
+    //                    Label label2 = new Label();
+                        mv.visitLabel(lblEnd);
+                        LOGGER.log(Level.DEBUG, "\n\n\n\n\n >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+className);
+                        mv.visitLocalVariable("this", "L"+className+";", null, lblStart, lblEnd, 0);
+                        mv.visitLocalVariable("f", "Ljava/lang/String;", null, lblStart, lblEnd, 1);
+                        mv.visitMaxs(2, 2);
+                        mv.visitEnd();
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                    
+                    LOGGER.log(Level.DEBUG, "fin instrumentación métodos ITransparentDirtyDetector.");
+                    
                     // detectar si tiene el contructor por defecto y en caso de no tenerlo insertar uno.
                     if (!icd.hasDefaultContructor()) {
                         LOGGER.log(Level.DEBUG, "No se ha encontrado el contructor por defecto. Insertando uno...");
                         mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "()V", null, null);
                         mv.visitCode();
                         mv.visitVarInsn(Opcodes.ALOAD, 0);
-                        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false);
+//                        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false);
+                        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, cr.getSuperName(), "<init>", "()V", false);
                         
                         // inicializar el Set de campos
                         LOGGER.log(Level.TRACE, "inicializar el hashset...");

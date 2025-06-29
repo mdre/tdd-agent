@@ -226,19 +226,17 @@ public class WriteAccessActivatorAdapter extends AnalyzerAdapter implements ITra
     private void insertDirtyCollectionsFields() {
         for (String lastCollectionModifiedField : lastCollectionModifiedFields) {
             mv.visitVarInsn(Opcodes.ALOAD, 0);
-            mv.visitFieldInsn(Opcodes.GETFIELD, owner, MODIFIEDFIELDS, "Ljava/util/Set;");
             mv.visitLdcInsn(lastCollectionModifiedField);
-            mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/util/Set", "add", "(Ljava/lang/Object;)Z", true);
-            mv.visitInsn(Opcodes.POP); // Descartar el resultado booleano de add
+            mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, owner, ADDMODIFIEDFIELD, "(Ljava/lang/String;)V", false);
         }
     }
     
     private void insertDirtyField(String name) {
+        // invocar al método
         mv.visitVarInsn(Opcodes.ALOAD, 0);
-        mv.visitFieldInsn(Opcodes.GETFIELD, owner, MODIFIEDFIELDS, "Ljava/util/Set;");
         mv.visitLdcInsn(name);
-        mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/util/Set", "add", "(Ljava/lang/Object;)Z", true);
-        mv.visitInsn(Opcodes.POP); // Descartar el resultado booleano de add
+        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, owner, ADDMODIFIEDFIELD, "(Ljava/lang/String;)V", false);
+
     }
 }
 

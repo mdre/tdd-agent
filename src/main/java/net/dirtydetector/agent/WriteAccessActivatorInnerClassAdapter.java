@@ -81,9 +81,7 @@ public class WriteAccessActivatorInnerClassAdapter extends AnalyzerAdapter
             LOGGER.log(Level.DEBUG, "className: {}, outerClass: {}", new Object[]{className, outerClass});
             mv.visitFieldInsn(Opcodes.GETFIELD, this.className, "this$0", "L" + this.outerClass + ";");
 
-            //mv.visitInsn(Opcodes.ICONST_1);
             mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, outerClass, SETDIRTY, "()V", false);
-            //mv.visitFieldInsn(Opcodes.PUTFIELD, owner, "__ogm__dirtyMark", "Z");
         }
         mv.visitInsn(opcode);
         LOGGER.log(Level.TRACE, "fin --------------------------------------------------");
@@ -233,11 +231,16 @@ public class WriteAccessActivatorInnerClassAdapter extends AnalyzerAdapter
     }
 
     private void insertDirtyField(String name) {
+//        mv.visitVarInsn(Opcodes.ALOAD, 0);
+//        mv.visitFieldInsn(Opcodes.GETFIELD, className, "this$0", "L"+outerClass+";");
+//        mv.visitFieldInsn(Opcodes.GETFIELD, outerClass, MODIFIEDFIELDS, "Ljava/util/Set;");
+//        mv.visitLdcInsn(name);
+//        mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/util/Set", "add", "(Ljava/lang/Object;)Z", true);
+//        mv.visitInsn(Opcodes.POP); // Descartar el resultado booleano de add
         mv.visitVarInsn(Opcodes.ALOAD, 0);
-        mv.visitFieldInsn(Opcodes.GETFIELD, className, "this$0", "L"+outerClass+";");
-        mv.visitFieldInsn(Opcodes.GETFIELD, outerClass, MODIFIEDFIELDS, "Ljava/util/Set;");
+        mv.visitFieldInsn(Opcodes.GETFIELD, this.className, "this$0", "L" + this.outerClass + ";");
         mv.visitLdcInsn(name);
-        mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/util/Set", "add", "(Ljava/lang/Object;)Z", true);
-        mv.visitInsn(Opcodes.POP); // Descartar el resultado booleano de add
+        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, outerClass, ADDMODIFIEDFIELD, "(Ljava/lang/String;)V", false);
     }
+    
 }
