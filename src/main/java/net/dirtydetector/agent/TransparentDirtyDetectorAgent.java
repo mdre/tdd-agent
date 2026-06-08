@@ -127,7 +127,7 @@ public class TransparentDirtyDetectorAgent {
     private static void loadAgent(String agentJar, String options) throws AttachNotSupportedException, IOException, AgentLoadException, AgentInitializationException {
         long pid = ProcessHandle.current().pid();
         VirtualMachine vm = VirtualMachine.attach("" + pid);
-        vm.loadAgent(agentJar, null);
+        vm.loadAgent(agentJar, options);
     }
     
     /**

@@ -133,14 +133,14 @@ build.doLast {
 task findAgentPath {
     
     
-    project.ext.setProperty('tddAgentPath', jar.archivePath)
+    project.ext.setProperty('tddAgentPath', jar.archiveFile.get().asFile)
     println "Path completo al JAR generado: $tddAgentPath"
 }
 
 
 
 test {
-    dependsOn findAgentPath
+    dependsOn jar, findAgentPath
     jvmArgs '-Djdk.attach.allowAttachSelf=true'
     jvmArgs += "-javaagent:${tddAgentPath}=net.odbogm.annotations.Entity"
     testLogging {
