@@ -9,8 +9,14 @@ import net.odbogm.annotations.Entity;
  */
 @Entity
 public class Outer {
+    public enum Servicio {
+        CLINICA,
+        LABORATORIO
+    }
     
     private String member;
+    
+    private Servicio servicio;
     
     public String publicMember;
 
@@ -27,6 +33,16 @@ public class Outer {
 
     public String getMember() {
         return member;
+    }
+    
+    
+    public void setServicio(Servicio servicio) {
+        this.servicio = servicio;
+    }
+    
+    
+    public Servicio getServicio() {
+        return servicio;
     }
     
     

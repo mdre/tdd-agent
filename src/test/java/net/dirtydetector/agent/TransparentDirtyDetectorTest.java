@@ -145,6 +145,23 @@ public class TransparentDirtyDetectorTest {
         assertEquals("modified", outer.getMember());
         assertTrue(((ITransparentDirtyDetector)outer).___tdd___isDirty());
     }
+
+    @Test
+    public void innerEnumIsNotInstrumented() throws Exception {
+        Outer.Servicio servicio = Outer.Servicio.LABORATORIO;
+        assertFalse((Object) servicio instanceof ITransparentDirtyDetector);
+
+        Outer outer = new Outer("test");
+        assertTrue(outer instanceof ITransparentDirtyDetector);
+        ITransparentDirtyDetector detector = (ITransparentDirtyDetector) outer;
+        assertFalse(detector.___tdd___isDirty());
+
+        outer.setServicio(servicio);
+
+        assertEquals(servicio, outer.getServicio());
+        assertTrue(detector.___tdd___isDirty());
+        assertTrue(detector.___tdd___getModifiedFields().contains("servicio"));
+    }
     
     
     @Test

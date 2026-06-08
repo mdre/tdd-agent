@@ -153,9 +153,9 @@ public class TransparentDirtyDetectorInstrumentator
             LOGGER.log(Level.DEBUG, "analizando clase: {}...", className);
 
             ClassReader cr = new ClassReader(classfileBuffer);
-            if (isInterface(cr)) {
-                // No procesar las interfaces
-                LOGGER.log(Level.DEBUG, "Interface detectada {}. NO PROCESAR!", className);
+            if (isNonInstrumentableType(cr)) {
+                // No procesar interfaces, annotations ni enums.
+                LOGGER.log(Level.DEBUG, "Tipo no instrumentable detectado {}. NO PROCESAR!", className);
                 return classfileBuffer;
             }
 
@@ -440,5 +440,12 @@ public class TransparentDirtyDetectorInstrumentator
      */
     public synchronized boolean isInterface(ClassReader cr) {
         return ((cr.getAccess() & 0x200) != 0);
+    }
+
+    private boolean isNonInstrumentableType(ClassReader cr) {
+        int access = cr.getAccess();
+        return (access & Opcodes.ACC_INTERFACE) != 0
+                || (access & Opcodes.ACC_ANNOTATION) != 0
+                || (access & Opcodes.ACC_ENUM) != 0;
     }
 }
