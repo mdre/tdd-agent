@@ -15,6 +15,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.config.Configurator;
 import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
@@ -340,6 +341,10 @@ public class TransparentDirtyDetectorInstrumentator
                                 + "\n****************************************************************************",
                                 className);
                         ClassReader crRedefine = new ClassReader(classfileBuffer);
+                        if (!hasOuterThisField(crRedefine)) {
+                            LOGGER.log(Level.DEBUG, "InnerClass sin this$0. No se instrumenta: {}", className);
+                            return classfileBuffer;
+                        }
 
                         ClassWriter cw = new ClassWriter(crRedefine, ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS) {
                             // Asegurar que se usa el mismo CL para cargar las clases.
@@ -406,6 +411,20 @@ public class TransparentDirtyDetectorInstrumentator
             }
         }
         return classfileBuffer;
+    }
+
+    private boolean hasOuterThisField(ClassReader cr) {
+        boolean[] hasOuterThisField = new boolean[]{false};
+        cr.accept(new ClassVisitor(Opcodes.ASM9) {
+            @Override
+            public org.objectweb.asm.FieldVisitor visitField(int access, String name, String descriptor, String signature, Object value) {
+                if ("this$0".equals(name)) {
+                    hasOuterThisField[0] = true;
+                }
+                return super.visitField(access, name, descriptor, signature, value);
+            }
+        }, ClassReader.SKIP_CODE | ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
+        return hasOuterThisField[0];
     }
     
     /**

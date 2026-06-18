@@ -145,6 +145,24 @@ public class TransparentDirtyDetectorTest {
         assertEquals("modified", outer.getMember());
         assertTrue(((ITransparentDirtyDetector)outer).___tdd___isDirty());
     }
+
+    @Test
+    public void staticInnerClassWithoutOuterThisIsIgnored() throws Exception {
+        System.out.println("");
+        System.out.println("staticInnerClassWithoutOuterThisIsIgnored() --------------------");
+        System.out.println("");
+
+        Outer outer = new Outer("test");
+        assertTrue(outer instanceof ITransparentDirtyDetector);
+        assertFalse(((ITransparentDirtyDetector)outer).___tdd___isDirty());
+
+        Outer.StaticInner inner = new Outer.StaticInner();
+        assertFalse(inner instanceof ITransparentDirtyDetector);
+
+        inner.setOuterMember(outer, "modified");
+        assertEquals("modified", outer.getMember());
+        assertFalse(((ITransparentDirtyDetector)outer).___tdd___isDirty());
+    }
     
     
     @Test
