@@ -20,6 +20,7 @@ import test.FooExEx;
 import test.IgnoredFieldMapChild;
 import test.InheritedMapChild;
 import test.InheritedMapGeneratedProxy;
+import test.FooWithIgnore;
 import test.Outer;
 
 /**
@@ -102,6 +103,10 @@ public class TransparentDirtyDetectorTest {
             System.out.println("::"+ic.getName());
         }
         assertTrue((Object)fc instanceof ITransparentDirtyDetector);
+        
+        System.out.println("Validar clases con TDDIgnore");
+        FooWithIgnore fwi = new FooWithIgnore("con TDDIgnore");
+        assertTrue(fwi instanceof ITransparentDirtyDetector);
     }
     
     @Test
@@ -147,6 +152,15 @@ public class TransparentDirtyDetectorTest {
         inner.setOuterMember("modified");
         assertEquals("modified", outer.getMember());
         assertTrue(((ITransparentDirtyDetector)outer).___tdd___isDirty());
+        
+        Outer outerBuild = new Outer.StaticInnerBuilder().setMemberBuilder("static").build();
+        
+        assertTrue(outerBuild instanceof ITransparentDirtyDetector);
+        assertTrue(((ITransparentDirtyDetector)outer).___tdd___isDirty());
+        
+        Outer.StaticInnerBuilder sb = new Outer.StaticInnerBuilder();
+        System.out.println("sb: "+sb.getClass().isNestmateOf(Outer.class));
+        System.out.println("sb: "+sb.getClass().toGenericString());
     }
     
     

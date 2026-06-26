@@ -1,5 +1,7 @@
 package test;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Stream;
 import net.odbogm.annotations.Entity;
 
@@ -19,7 +21,6 @@ public class Outer {
         this.member = member;
     }
 
-
     public void setMember(String member) {
         this.member = member;
     }
@@ -28,7 +29,6 @@ public class Outer {
     public String getMember() {
         return member;
     }
-    
     
     public void anon() {
         new Runnable() {
@@ -55,6 +55,10 @@ public class Outer {
         new Thread(() -> member = "from thread").run();
     }
     
+    public final void finalMethod() {
+        this.member = "final";
+    }
+    
 
     public class Inner {
         private boolean touched = false;
@@ -65,9 +69,28 @@ public class Outer {
         }
     }
     
-    
-    public final void finalMethod() {
-        this.member = "final";
+    public static class StaticInnerBuilder {
+        private Outer o = new Outer("StaticInnerBuilder");
+        private String s;
+        private List<String> sl;
+        
+        public StaticInnerBuilder setMemberBuilder(String m) {
+            o.setMember(m);
+            s = "test";
+            return this;
+        }
+        
+        public StaticInnerBuilder setList(List<String> lista) {
+            sl = new ArrayList<>();
+            for (String s: lista) {
+                sl.add(s);
+            }
+            return this;
+        }
+        
+        public Outer build() {
+            return o;
+        }
+        
     }
-    
 }
