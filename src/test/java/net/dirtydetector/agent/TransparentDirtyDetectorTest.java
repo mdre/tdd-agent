@@ -17,6 +17,9 @@ import test.FinalClass;
 import test.Foo;
 import test.FooEx;
 import test.FooExEx;
+import test.IgnoredFieldMapChild;
+import test.InheritedMapChild;
+import test.InheritedMapGeneratedProxy;
 import test.FooWithIgnore;
 import test.Outer;
 
@@ -481,6 +484,54 @@ public class TransparentDirtyDetectorTest {
         assertTrue(((ITransparentDirtyDetector)fxx).___tdd___getModifiedFields().contains("s2"));
         assertTrue(((ITransparentDirtyDetector)fxx).___tdd___getModifiedFields().contains("s3"));
         
+    }
+
+    @Test
+    public void inheritedMapMutationInAbstractGrandparentIsTracked() {
+        InheritedMapChild child = new InheritedMapChild();
+        assertMapMutationMarksGrandparentField(child);
+
+        InheritedMapGeneratedProxy generatedProxyLikeObject = new InheritedMapGeneratedProxy();
+        assertMapMutationMarksGrandparentField(generatedProxyLikeObject);
+    }
+
+    @Test
+    public void tddIgnoredFieldDoesNotPreventParentInstrumentation() {
+        IgnoredFieldMapChild child = new IgnoredFieldMapChild();
+
+        assertTrue(child instanceof ITransparentDirtyDetector);
+        ITransparentDirtyDetector detector = (ITransparentDirtyDetector) child;
+
+        detector.___tdd___clearDirty();
+        child.setMarker("changed");
+        assertTrue(detector.___tdd___isDirty());
+        assertTrue(detector.___tdd___getModifiedFields().contains("marker"));
+
+        detector.___tdd___clearDirty();
+        child.setIgnoredValue(1);
+        assertFalse(detector.___tdd___isDirty());
+        assertFalse(detector.___tdd___getModifiedFields().contains("ignoredValue"));
+
+        detector.___tdd___clearDirty();
+        child.putValue("key", 8);
+
+        System.out.println("Ignored field map object: " + child.getClass().getName());
+        System.out.println("Modificados: " + detector.___tdd___getModifiedFields());
+        assertTrue(detector.___tdd___isDirty());
+        assertTrue(detector.___tdd___getModifiedFields().contains("values"));
+    }
+
+    private void assertMapMutationMarksGrandparentField(InheritedMapChild child) {
+        assertTrue(child instanceof ITransparentDirtyDetector);
+        ITransparentDirtyDetector detector = (ITransparentDirtyDetector) child;
+        detector.___tdd___clearDirty();
+
+        child.putValue("key", 8);
+
+        System.out.println("Inherited map object: " + child.getClass().getName());
+        System.out.println("Modificados: " + detector.___tdd___getModifiedFields());
+        assertTrue(detector.___tdd___isDirty());
+        assertTrue(detector.___tdd___getModifiedFields().contains("values"));
     }
     
     
