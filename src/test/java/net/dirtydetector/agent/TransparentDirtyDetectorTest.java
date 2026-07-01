@@ -11,6 +11,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import test.ColClass;
+import test.ColTarget;
 import test.CollectionsTest;
 import test.ExAbsClass;
 import test.FinalClass;
@@ -285,6 +286,24 @@ public class TransparentDirtyDetectorTest {
         assertNotNull(m);
         assertFalse(Modifier.isFinal(m.getModifiers()));
     }
+    
+    @Test
+    public void localColectionNotSetDirty() {
+        ColTarget ct = new ColTarget();
+        
+        assertTrue(ct instanceof ITransparentDirtyDetector);
+        
+        ct.fieldModif();
+        assertTrue(((ITransparentDirtyDetector)ct).___tdd___isDirty());
+        
+        // quitar la marca de dirty
+        ((ITransparentDirtyDetector)ct).___tdd___clearDirty();
+        assertFalse(((ITransparentDirtyDetector)ct).___tdd___isDirty());
+        
+        ct.localAL();
+        assertFalse(((ITransparentDirtyDetector)ct).___tdd___isDirty());
+    }
+    
     
     @Test
     public void collectionTest() throws Exception {

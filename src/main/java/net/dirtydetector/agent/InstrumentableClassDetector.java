@@ -147,7 +147,7 @@ public class InstrumentableClassDetector extends ClassVisitor implements IJavaCo
         @Override
         public AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
             if (Type.getType(descriptor).getClassName().equals(TDDIgnore.class.getName())) {
-                InstrumentableClassDetector.this.ignoredFields.add(name);
+                ignoredFields.add(name);
             }
             return super.visitAnnotation(descriptor, visible);
         }
