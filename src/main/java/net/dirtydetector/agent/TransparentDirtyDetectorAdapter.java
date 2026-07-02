@@ -82,7 +82,7 @@ public class TransparentDirtyDetectorAdapter extends ClassVisitor implements ITr
                 LOGGER.log(Level.DEBUG, ">>>>>>>>>>> Instrumentando método: {}", name);
                 LOGGER.log(Level.DEBUG, ">>>>>>>>>>> owner: {} - access: {} - name: {} - desc: {}",
                                                 new Object[]{ className,access,name,desc});
-                mv = new WriteAccessActivatorAdapter(Opcodes.ASM9, className, access, name, desc, mv, ignoredFields, collectionsFields);
+                mv = new WriteAccessActivatorAdapter(Opcodes.ASM9, className, access, name, desc, signature, exceptions, mv, ignoredFields, collectionsFields);
             }
             LOGGER.log(Level.TRACE, "fin instrumentación ---------------------------------------------------");
         } else {

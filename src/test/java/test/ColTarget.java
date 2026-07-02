@@ -2,6 +2,7 @@ package test;
 
 
 import java.util.ArrayList;
+import java.util.List;
 import net.odbogm.annotations.Entity;
 
 /*
@@ -29,5 +30,13 @@ public class ColTarget {
         localAL.add("local");
         
         localAL.addAll(this.fieldAL);
+    }
+    
+    public List<String> localAddAfterFieldRead() {
+        ArrayList<String> indirect = new ArrayList<>();
+        for (Object value : this.fieldAL) {
+            indirect.add(String.valueOf(value));
+        }
+        return indirect;
     }
 }

@@ -12,8 +12,8 @@ public class LogginProperties {
     public static final Level TransparentDirtyDetectorInstrumentator     = Level.INFO;
     public static final Level TransparentDirtyDetectorAgent              = Level.INFO;
     public static final Level InstrumentableClassDetector                = Level.INFO;
-    public static final Level WriteAccessActivatorAdapter                = Level.INFO;
-    public static final Level WriteAccessActivatorInnerClassAdapter      = Level.INFO;
-    public static final Level WriteConstructorAccessActivatorAdapter     = Level.INFO;
+    public static final Level WriteAccessActivatorAdapter                = Level.TRACE;
+    public static final Level WriteAccessActivatorInnerClassAdapter      = Level.TRACE;
+    public static final Level WriteConstructorAccessActivatorAdapter     = Level.TRACE;
     
 }

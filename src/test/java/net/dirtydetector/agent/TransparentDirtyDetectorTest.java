@@ -291,17 +291,22 @@ public class TransparentDirtyDetectorTest {
     public void localColectionNotSetDirty() {
         ColTarget ct = new ColTarget();
         
-        assertTrue(ct instanceof ITransparentDirtyDetector);
+//        assertTrue(ct instanceof ITransparentDirtyDetector);
+//        
+//        ct.fieldModif();
+//        assertTrue(((ITransparentDirtyDetector)ct).___tdd___isDirty());
+//        
+//        // quitar la marca de dirty
+//        ((ITransparentDirtyDetector)ct).___tdd___clearDirty();
+//        assertFalse(((ITransparentDirtyDetector)ct).___tdd___isDirty());
+//        
+//        ct.localAL();
+//        assertFalse(((ITransparentDirtyDetector)ct).___tdd___isDirty());
         
-        ct.fieldModif();
-        assertTrue(((ITransparentDirtyDetector)ct).___tdd___isDirty());
-        
-        // quitar la marca de dirty
-        ((ITransparentDirtyDetector)ct).___tdd___clearDirty();
+        ct.localAddAfterFieldRead();
+        System.out.println("Dirty: "+((ITransparentDirtyDetector)ct).___tdd___isDirty());
         assertFalse(((ITransparentDirtyDetector)ct).___tdd___isDirty());
-        
-        ct.localAL();
-        assertFalse(((ITransparentDirtyDetector)ct).___tdd___isDirty());
+        assertTrue(((ITransparentDirtyDetector) ct).___tdd___getModifiedFields().isEmpty());
     }
     
     

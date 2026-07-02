@@ -44,6 +44,10 @@ dependencies {
     implementation 'org.ow2.asm:asm:9.7'
     implementation 'org.ow2.asm:asm-util:9.7'
     implementation 'org.ow2.asm:asm-commons:9.7'
+    // Requeridas por AbstractWriteAccessActivatorAdapter: MethodNode/InsnList (asm-tree) y
+    // Analyzer/Interpreter/Frame (asm-analysis), usadas para el análisis de dataflow de dos pasadas.
+    implementation 'org.ow2.asm:asm-tree:9.7'
+    implementation 'org.ow2.asm:asm-analysis:9.7'
     testImplementation 'junit:junit:4.13.2'
     implementation 'org.apache.logging.log4j:log4j-core:2.23.1'
     implementation 'org.apache.logging.log4j:log4j-api:2.23.1'

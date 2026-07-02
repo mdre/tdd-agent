@@ -46,7 +46,7 @@ public class TransparentDirtyDetectorInnerClassAdapter extends ClassVisitor impl
         mv = cv.visitMethod(access & (~Opcodes.ACC_FINAL), name, desc, signature, exceptions);
         if ((mv != null) && !name.equals("<init>") && !name.equals("<clinit>")) {
             LOGGER.log(Level.DEBUG, ">>>>>>>>>>> Instrumentando método: {}", name);
-            mv = new WriteAccessActivatorInnerClassAdapter(Opcodes.ASM9, className, access, name, desc, mv, ignoredFields, collectionsFields);
+            mv = new WriteAccessActivatorInnerClassAdapter(Opcodes.ASM9, className, access, name, desc, signature, exceptions, mv, ignoredFields, collectionsFields);
             LOGGER.log(Level.TRACE, "fin instrumentación ---------------------------------------------------");
         } else {
             LOGGER.log(Level.TRACE, "mv = NULL !!!! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
