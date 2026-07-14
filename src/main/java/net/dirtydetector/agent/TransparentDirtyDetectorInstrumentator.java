@@ -262,6 +262,22 @@ public class TransparentDirtyDetectorInstrumentator
                         Label lblEnd = new Label();
                         mv.visitLabel(lblStart);
     //                    mv.visitLineNumber(61, label0);
+                        //implementar el if para determinar si se ha inicializado el hashset
+                        mv.visitVarInsn(Opcodes.ALOAD, 0);
+                        mv.visitFieldInsn(Opcodes.GETFIELD, className, MODIFIEDFIELDS, "Ljava/util/Set;");
+                        Label label1 = new Label();
+                        mv.visitJumpInsn(Opcodes.IFNONNULL, label1);
+                        Label label2 = new Label();
+                        mv.visitLabel(label2);
+//                        mv.visitLineNumber(62, label2);
+                        mv.visitVarInsn(Opcodes.ALOAD, 0);
+                        mv.visitTypeInsn(Opcodes.NEW, "java/util/HashSet");
+                        mv.visitInsn(Opcodes.DUP);
+                        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/util/HashSet", "<init>", "()V", false);
+                        mv.visitFieldInsn(Opcodes.PUTFIELD, className, MODIFIEDFIELDS, "Ljava/util/Set;");
+                        mv.visitLabel(label1);
+                        // fin if ---
+                        
                         mv.visitVarInsn(Opcodes.ALOAD, 0);
                         mv.visitFieldInsn(Opcodes.GETFIELD, className, MODIFIEDFIELDS, "Ljava/util/Set;");
                         mv.visitVarInsn(Opcodes.ALOAD, 1);

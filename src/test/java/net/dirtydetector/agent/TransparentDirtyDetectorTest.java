@@ -462,7 +462,7 @@ public class TransparentDirtyDetectorTest {
         FooExEx fxx = new FooExEx("s3");
         System.out.println("Level 1");
         System.out.println("fx isDirty: "+ ((ITransparentDirtyDetector)fx).___tdd___isDirty());
-        assertFalse(((ITransparentDirtyDetector)fx).___tdd___isDirty());
+        assertTrue(((ITransparentDirtyDetector)fx).___tdd___isDirty());
         System.out.println("\n\n\nModificar un campo");
         fx.setS2("s2");
         assertTrue(((ITransparentDirtyDetector)fx).___tdd___isDirty());

@@ -15,7 +15,8 @@ public class Foo {
     private String s;
 
     public Foo(String s) {
-        this.s = s;
+//        this.s = s;
+        this.setS(s);
     }
 
     public String getS() {

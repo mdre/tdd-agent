@@ -58,6 +58,9 @@ public class FooTarget implements ITransparentDirtyDetector {
     
     @Override
     public void ___tdd___addModifiedField(String f) {
+        if (this.___tdd___modifiedFields == null) {
+            this.___tdd___modifiedFields = new HashSet<>();
+        }
         this.___tdd___modifiedFields.add(f);
     }
     
