@@ -163,6 +163,24 @@ public class TransparentDirtyDetectorTest {
         System.out.println("sb: "+sb.getClass().isNestmateOf(Outer.class));
         System.out.println("sb: "+sb.getClass().toGenericString());
     }
+
+    @Test
+    public void staticInnerClassWithoutOuterThisIsIgnored() throws Exception {
+        System.out.println("");
+        System.out.println("staticInnerClassWithoutOuterThisIsIgnored() --------------------");
+        System.out.println("");
+
+        Outer outer = new Outer("test");
+        assertTrue(outer instanceof ITransparentDirtyDetector);
+        assertFalse(((ITransparentDirtyDetector)outer).___tdd___isDirty());
+
+        Outer.StaticInner inner = new Outer.StaticInner();
+        assertFalse(inner instanceof ITransparentDirtyDetector);
+
+        inner.setOuterMember(outer, "modified");
+        assertEquals("modified", outer.getMember());
+        assertFalse(((ITransparentDirtyDetector)outer).___tdd___isDirty());
+    }
     
     
     @Test

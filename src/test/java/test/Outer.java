@@ -68,6 +68,12 @@ public class Outer {
             Outer.this.member = member;
         }
     }
+
+    public static class StaticInner {
+        public void setOuterMember(Outer outer, String member) {
+            outer.member = member;
+        }
+    }
     
     public static class StaticInnerBuilder {
         private Outer o = new Outer("StaticInnerBuilder");
